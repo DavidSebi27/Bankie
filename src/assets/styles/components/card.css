@@ -1,0 +1,12 @@
+.card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+
+  @apply p-4 transition;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
