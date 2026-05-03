@@ -6,7 +6,11 @@ export const useAuthStore = defineStore('auth', {
         token: localStorage.getItem('token') || null,
         role: null,
         loading: false,
-        error: null
+        initialized: false,
+        error: null,
+        user: {
+            approved: false
+        }
     }),
 
     actions: {
@@ -19,15 +23,24 @@ export const useAuthStore = defineStore('auth', {
 
                 this.token = res.data.token
                 this.role = res.data.role
-
+                this.user = { ...res.data.user, approved: res.data.approved }
                 localStorage.setItem('token', this.token)
-
                 return true
             } catch (err) {
                 this.error = err.response?.data?.message || 'Login failed'
                 return false
             } finally {
                 this.loading = false
+            }
+        },
+        async fetchUser() {
+            try {
+                const user = await authApi.fetchUser()
+                this.user = { ...user, approved: user.approved }
+            } catch (err) {
+                this.error = 'Failed to fetch user data'
+            } finally {
+                this.initialized = true
             }
         },
 

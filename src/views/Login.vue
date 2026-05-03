@@ -8,10 +8,12 @@
         </div>
 
         <form class="space-y-4" @submit.prevent="handleLogin">
-            <BaseInput label="Email *" type="email" placeholder="user@example.com" :error="errors.email" v-model="form.email" />
+            <BaseInput label="Email *" type="email" placeholder="user@example.com" :error="errors.email"
+                v-model="form.email" />
             <BaseInput label="Password *" type="password" :error="errors.password" v-model="form.password" />
 
-            <BaseButton :loading="auth.loading" type="submit" :disabled="auth.loading || Object.values(errors).some(e => e)">
+            <BaseButton :loading="auth.loading" type="submit"
+                :disabled="auth.loading || Object.values(errors).some(e => e)">
                 Sign in
             </BaseButton>
         </form>
@@ -70,10 +72,11 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-#header{
+#header {
     margin: 1rem 0;
 }
-#header h1{
+
+#header h1 {
     margin: 1rem 0;
 }
 

@@ -1,6 +1,17 @@
 <script setup>
 import { useRoute } from 'vue-router'
+import { onMounted } from 'vue'
+import { useAuthStore } from './stores/authStore'
 
+const auth = useAuthStore()
+
+onMounted(() => {
+    if (auth.token) {
+        auth.fetchUser()
+    } else {
+        auth.initialized = true
+    }
+})
 const route = useRoute()
 </script>
 

@@ -13,11 +13,14 @@
         <form class="space-y-4" @submit.prevent="handleRegister">
 
             <div class="grid grid-cols-2 gap-4">
-                <BaseInput v-model="form.firstName" label="First name *" placeholder="First name" :error="errors.firstName" />
-                <BaseInput v-model="form.lastName" label="Last name *" placeholder="Last name" :error="errors.lastName" />
+                <BaseInput v-model="form.firstName" label="First name *" placeholder="First name"
+                    :error="errors.firstName" />
+                <BaseInput v-model="form.lastName" label="Last name *" placeholder="Last name"
+                    :error="errors.lastName" />
             </div>
 
-            <BaseInput v-model="form.email" type="email" label="Email *" placeholder="user@example.com" :error="errors.email" />
+            <BaseInput v-model="form.email" type="email" label="Email *" placeholder="user@example.com"
+                :error="errors.email" />
 
             <BaseInput v-model="form.password" type="password" label="Password *" :error="errors.password" />
 
