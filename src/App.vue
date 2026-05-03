@@ -2,14 +2,14 @@
 import { useRoute } from 'vue-router'
 import { onMounted } from 'vue'
 import { useAuthStore } from './stores/authStore'
-import AppTopbar from './views/Apptopbar.vue'
+import AppTopbar from './components/layout/AppTopbar.vue'
 
 const auth = useAuthStore()
 
 onMounted(() => {
-    if (auth.token && !auth.initialized) {
-        auth.fetchUser()
-    }
+  if (auth.token && !auth.initialized) {
+    auth.fetchUser()
+  }
 })
 const route = useRoute()
 </script>
