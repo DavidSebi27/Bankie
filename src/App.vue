@@ -2,14 +2,13 @@
 import { useRoute } from 'vue-router'
 import { onMounted } from 'vue'
 import { useAuthStore } from './stores/authStore'
+import AppTopbar from './views/Apptopbar.vue'
 
 const auth = useAuthStore()
 
 onMounted(() => {
-    if (auth.token) {
+    if (auth.token && !auth.initialized) {
         auth.fetchUser()
-    } else {
-        auth.initialized = true
     }
 })
 const route = useRoute()
@@ -17,13 +16,7 @@ const route = useRoute()
 
 <template>
   <div class="min-h-screen bg-bg text-body">
-
-    <nav v-if="route.meta.layout !== 'auth'" class="p-4 border-b border-default bg-white">
-      <div class="max-w-[1080px] mx-auto flex justify-between">
-        <h1>Bankie</h1>
-      </div>
-    </nav>
-
+    <AppTopbar v-if="auth.token" />
     <router-view />
   </div>
 </template>

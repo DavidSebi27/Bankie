@@ -1,151 +1,307 @@
 <template>
-    <AuthForm>
-        <div class="text-center" id="header">
-            <h1 class="text-heading text-heading-section font-light tracking-section">
-                Create account
-            </h1>
-            <p class="text-body">
-                Start your banking journey
-            </p>
+  <AuthForm>
+
+    <div id="header" class="text-center">
+      <p class="logo">Banki<span>e</span></p>
+      <h1 class="text-heading text-heading-section font-light tracking-section">
+        Create account
+      </h1>
+      <p class="text-body">Start your banking journey</p>
+    </div>
+
+    <div class="section-divider" />
+
+    <form class="space-y-4" @submit.prevent="handleRegister">
+
+      <div class="grid-2">
+        <BaseInput
+          v-model="form.firstName"
+          label="First name *"
+          placeholder="James"
+          :error="errors.firstName"
+        />
+        <BaseInput
+          v-model="form.lastName"
+          label="Last name *"
+          placeholder="Doe"
+          :error="errors.lastName"
+        />
+      </div>
+
+      <BaseInput
+        v-model="form.email"
+        type="email"
+        label="Email *"
+        placeholder="user@example.com"
+        :error="errors.email"
+      />
+
+      <div>
+        <BaseInput
+          v-model="form.password"
+          type="password"
+          label="Password *"
+          :error="errors.password"
+        />
+        <div v-if="form.password" class="pw-strength">
+          <div class="pw-bars">
+            <div v-for="i in 4" :key="i" class="pw-bar" :class="pwBarClass(i)" />
+          </div>
+          <span class="pw-label" :class="pwLabelClass">{{ pwLabel }}</span>
         </div>
-
-
-        <form class="space-y-4" @submit.prevent="handleRegister">
-
-            <div class="grid grid-cols-2 gap-4">
-                <BaseInput v-model="form.firstName" label="First name *" placeholder="First name"
-                    :error="errors.firstName" />
-                <BaseInput v-model="form.lastName" label="Last name *" placeholder="Last name"
-                    :error="errors.lastName" />
-            </div>
-
-            <BaseInput v-model="form.email" type="email" label="Email *" placeholder="user@example.com"
-                :error="errors.email" />
-
-            <BaseInput v-model="form.password" type="password" label="Password *" :error="errors.password" />
-
-            <BaseInput v-model="form.bsn" label="BSN *" :error="errors.bsn" />
-
-            <BaseInput v-model="form.phoneNumber" label="Phone number *" :error="errors.phoneNumber" />
-
-            <BaseButton :loading="auth.loading" type="submit"
-                :disabled="auth.loading || Object.values(errors).some(e => e)">
-                Create account
-            </BaseButton>
-
-        </form>
-        <p class="text-center text-caption" id="footer">
-            Already have an account?
-            <RouterLink to="/login" class="text-primary">
-                Sign in
-            </RouterLink>
+        <p v-else class="field-hint">
+          Min. 8 characters with uppercase, number &amp; symbol
         </p>
+      </div>
 
-    </AuthForm>
+      <BaseInput
+        v-model="form.confirmPassword"
+        type="password"
+        label="Confirm password *"
+        :error="errors.confirmPassword"
+      />
+
+      <div class="grid-2">
+        <div>
+          <BaseInput
+            v-model="form.bsn"
+            label="BSN *"
+            placeholder="12345678"
+            :error="errors.bsn"
+          />
+          <p class="field-hint">8 or 9 digit citizen number</p>
+        </div>
+        <BaseInput
+          v-model="form.phoneNumber"
+          label="Phone number *"
+          placeholder="+31 6 12345678"
+          :error="errors.phoneNumber"
+        />
+      </div>
+
+      <Transition name="fade">
+        <div v-if="auth.error" class="api-error">
+          <AlertCircle class="api-error-icon" />
+          {{ auth.error }}
+        </div>
+      </Transition>
+
+      <BaseButton
+        type="submit"
+        :loading="auth.loading"
+        :disabled="auth.loading || hasErrors"
+      >
+        Create account
+      </BaseButton>
+
+    </form>
+
+    <p id="footer" class="text-center text-caption">
+      Already have an account?
+      <RouterLink to="/login" class="text-primary">Sign in</RouterLink>
+    </p>
+
+  </AuthForm>
 </template>
 
 <script setup>
-import AuthForm from '../components/auth/AuthForm.vue'
-import BaseInput from '../components/ui/BaseInput.vue'
-import BaseButton from '../components/ui/BaseButton.vue'
-import { reactive, watch } from 'vue'
-import { useAuthStore } from '../stores/authStore'
+import { reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/authStore'
+import AuthForm   from '../components/auth/AuthForm.vue'
+import BaseInput  from '../components/ui/BaseInput.vue'
+import BaseButton from '../components/ui/BaseButton.vue'
+import { AlertCircle } from 'lucide-vue-next'
 
-const auth = useAuthStore()
+const auth   = useAuthStore()
 const router = useRouter()
 
 const form = reactive({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    bsn: '',
-    phoneNumber: ''
+  firstName:       '',
+  lastName:        '',
+  email:           '',
+  password:        '',
+  confirmPassword: '',
+  bsn:             '',
+  phoneNumber:     '',
 })
 
 const errors = reactive({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    bsn: '',
-    phoneNumber: ''
+  firstName:       '',
+  lastName:        '',
+  email:           '',
+  password:        '',
+  confirmPassword: '',
+  bsn:             '',
+  phoneNumber:     '',
 })
 
-// Dynamically clear errors when the user types in any field
 Object.keys(form).forEach(key => {
-    watch(() => form[key], () => { errors[key] = '' })
+  watch(() => form[key], () => {
+    errors[key] = ''
+    auth.error  = null
+  })
 })
 
+// Re-validate confirmPassword live when password changes
+watch(() => form.password, () => {
+  if (form.confirmPassword && form.confirmPassword !== form.password) {
+    errors.confirmPassword = 'Passwords do not match'
+  } else {
+    errors.confirmPassword = ''
+  }
+})
+
+const hasErrors = computed(() => Object.values(errors).some(e => e))
+
+// ── Password strength ─────────────────────────────────────
+const pwScore = computed(() => {
+  const p = form.password
+  if (!p) return 0
+  let score = 0
+  if (p.length >= 8)                        score++
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p))  score++
+  if (/\d/.test(p))                         score++
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(p))    score++
+  return score
+})
+
+const pwLabel = computed(() => {
+  const s = pwScore.value
+  if (s <= 1) return 'Weak — add uppercase, number & symbol'
+  if (s === 2) return 'Fair — keep going'
+  if (s === 3) return 'Good — almost there'
+  return 'Strong password'
+})
+
+const pwLabelClass = computed(() => ({
+  'pw-weak':   pwScore.value <= 1,
+  'pw-fair':   pwScore.value === 2,
+  'pw-good':   pwScore.value === 3,
+  'pw-strong': pwScore.value === 4,
+}))
+
+const pwBarClass = (i) => {
+  if (i > pwScore.value) return ''
+  if (pwScore.value <= 1) return 'bar-weak'
+  if (pwScore.value === 2) return 'bar-fair'
+  if (pwScore.value === 3) return 'bar-good'
+  return 'bar-strong'
+}
+
+// ── Validation ────────────────────────────────────────────
 const validate = () => {
-    let valid = true
-    if (!form.firstName) {
-        errors.firstName = 'First name is required'
-        valid = false
-    }
+  let valid = true
 
-    if (!form.lastName) {
-        errors.lastName = 'Last name is required'
-        valid = false
-    }
+  if (!form.firstName.trim()) { errors.firstName = 'First name is required'; valid = false }
+  if (!form.lastName.trim())  { errors.lastName  = 'Last name is required';  valid = false }
 
-    if (!form.email) {
-        errors.email = 'Email is required'
-        valid = false
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-        errors.email = 'Invalid email'
-        valid = false
-    }
+  if (!form.email.trim()) {
+    errors.email = 'Email is required'; valid = false
+  } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    errors.email = 'Enter a valid email address'; valid = false
+  }
 
-    if (!form.password) {
-        errors.password = 'Password is required'
-        valid = false
-    } else if (
-        form.password.length < 8 || !/\d/.test(form.password) || !/[A-Z]/.test(form.password) ||
-        !/[a-z]/.test(form.password) || !/[!@#$%^&*(),.?":{}|<>]/.test(form.password)
-    ) {
-        errors.password = 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character'
-        valid = false
-    }
+  if (!form.password) {
+    errors.password = 'Password is required'; valid = false
+  } else if (pwScore.value < 4) {
+    errors.password = 'Password must include uppercase, lowercase, number & symbol'
+    valid = false
+  }
 
-    if (!form.bsn) {
-        errors.bsn = 'BSN is required'
-        valid = false
-    } else if (!/^\d{8,9}$/.test(form.bsn)) {
-        errors.bsn = 'Invalid BSN'
-        valid = false
-    }
+  if (!form.confirmPassword) {
+    errors.confirmPassword = 'Please confirm your password'; valid = false
+  } else if (form.confirmPassword !== form.password) {
+    errors.confirmPassword = 'Passwords do not match'; valid = false
+  }
 
-    if (!form.phoneNumber) {
-        errors.phoneNumber = 'Phone number is required'
-        valid = false
-    }
+  if (!form.bsn) {
+    errors.bsn = 'BSN is required'; valid = false
+  } else if (!/^\d{8,9}$/.test(form.bsn)) {
+    errors.bsn = 'BSN must be 8 or 9 digits'; valid = false
+  }
 
-    return valid
+  if (!form.phoneNumber.trim()) { errors.phoneNumber = 'Phone number is required'; valid = false }
+
+  return valid
 }
 
 const handleRegister = async () => {
-    if (!validate()) return
-
-    const success = await auth.register({ ...form })
-
-    if (success) {
-        router.push('/login')
-    }
+  auth.error = null
+  if (!validate()) return
+  const { confirmPassword, ...payload } = form
+  const success = await auth.register(payload)
+  if (success) router.push('/login')
 }
 </script>
 
 <style scoped>
-#header {
-    margin: 1rem 0;
+#header { margin: 1rem 0; }
+#header h1 { margin: 0.5rem 0 0.25rem; }
+#footer { margin-top: 1.25rem; }
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 300;
+  letter-spacing: -0.4px;
+  color: var(--color-heading);
+  margin-bottom: 0.5rem;
+}
+.logo span { color: var(--color-primary); }
+
+.section-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0 0 1.5rem;
 }
 
-#header h1 {
-    margin: 1rem 0;
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-#footer {
-    margin-top: 1rem;
+.field-hint {
+  font-size: 11px;
+  color: var(--color-body);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+/* Password strength */
+.pw-strength { margin-top: 7px; }
+.pw-bars { display: flex; gap: 4px; margin-bottom: 5px; }
+.pw-bar {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--color-border);
+  transition: background 0.25s;
+}
+.bar-weak   { background: var(--color-ruby); }
+.bar-fair   { background: #f59e0b; }
+.bar-good   { background: var(--color-primary-light); }
+.bar-strong { background: var(--color-success); }
+
+.pw-label  { font-size: 11px; }
+.pw-weak   { color: var(--color-ruby); }
+.pw-fair   { color: #b45309; }
+.pw-good   { color: var(--color-primary); }
+.pw-strong { color: var(--color-success-text); }
+
+/* API error */
+.api-error {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px;
+  background: #fff0f5;
+  border: 1px solid var(--color-border-magenta);
+  color: var(--color-ruby);
+  font-size: 13px;
+}
+.api-error-icon { width: 15px; height: 15px; flex-shrink: 0; }
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0; transform: translateY(-4px);
 }
 </style>

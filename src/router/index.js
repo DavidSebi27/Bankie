@@ -1,32 +1,55 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
-import Login from '../views/Login.vue'
-import Register from '../views/Register.vue'
+
+import LoginPage        from '../views/Login.vue'
+import RegisterPage     from '../views/Register.vue'
+import DashboardPage    from '../views/DashboardPage.vue'
+import UnauthorizedPage from '../views/Unauthorized.vue'
 
 const routes = [
-    { path: '/', redirect: '/login' },
-    { path: '/login', component: Login, meta: { layout: 'auth' } },
-    { path: '/register', component: Register, meta: { layout: 'auth' } },
-    { path: '/dashboard', component: () => import('../views/Dashboard.vue'), meta: { requiresAuth: true } }
+  { path: '/login',        component: LoginPage,        meta: { public: true } },
+  { path: '/register',     component: RegisterPage,     meta: { public: true } },
+  { path: '/unauthorized', component: UnauthorizedPage, meta: { public: true } },
+
+  { path: '/dashboard', component: DashboardPage },
+
+  { path: '/', redirect: '/dashboard' },
+  { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes
+  history: createWebHistory(),
+  routes,
 })
 
-router.beforeEach((to) => {
-    const auth = useAuthStore()
+router.beforeEach(async (to) => {
+  const auth = useAuthStore()
 
-    if (to.meta.requiresAuth && !auth.token) {
-        return '/login'
+  if (auth.token && !auth.initialized) {
+    await auth.fetchUser()
+  }
+
+  const isPublic      = to.meta.public
+  const requiredRoles = to.meta.roles
+
+  // If the route is public (login, register, unauthorized),
+  // let it through — UNLESS the user is logged in and trying
+  // to hit login/register (redirect them home instead).
+  if (isPublic) {
+    const authOnlyPublic = ['/login', '/register']
+    if (auth.token && authOnlyPublic.includes(to.path)) {
+      return { path: '/dashboard' }
     }
+    return
+  }
 
-    if (to.meta.role && auth.role !== to.meta.role) {
-        return '/unauthorized'
-    }
+  if (!auth.token) {
+    return { path: '/login' }
+  }
 
-    return true
+  if (requiredRoles && !requiredRoles.includes(auth.role)) {
+    return { path: '/unauthorized' }
+  }
 })
 
 export default router

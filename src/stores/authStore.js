@@ -25,6 +25,7 @@ export const useAuthStore = defineStore('auth', {
                 this.role = res.data.role
                 this.user = { ...res.data.user, approved: res.data.approved }
                 localStorage.setItem('token', this.token)
+                await this.fetchUser()
                 return true
             } catch (err) {
                 this.error = err.response?.data?.message || 'Login failed'
@@ -62,6 +63,8 @@ export const useAuthStore = defineStore('auth', {
         logout() {
             this.token = null
             this.role = null
+            this.user = null
+            this.initialized = false
             localStorage.removeItem('token')
         }
     }
