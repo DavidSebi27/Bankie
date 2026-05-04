@@ -1,20 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
-import LoginPage        from '../views/Login.vue'
-import RegisterPage     from '../views/Register.vue'
-import DashboardPage    from '../views/DashboardPage.vue'
-import UnauthorizedPage from '../views/Unauthorized.vue'
+import LoginPage            from '../views/Login.vue'
+import RegisterPage         from '../views/Register.vue'
+import DashboardPage        from '../views/DashboardPage.vue'
+import UnauthorizedPage     from '../views/Unauthorized.vue'
+import EmployeeLoginPage    from '../views/EmployeeLogin.vue'
+import EmployeeDashboardPage from '../views/employee/EmployeeDashboard.vue'
+
+const EMPLOYEE_ROLES = ['EMPLOYEE', 'ADMIN']
 
 const routes = [
   { path: '/login',        component: LoginPage,        meta: { public: true } },
   { path: '/register',     component: RegisterPage,     meta: { public: true } },
   { path: '/unauthorized', component: UnauthorizedPage, meta: { public: true } },
 
-  { path: '/dashboard', component: DashboardPage },
+  { path: '/employee/login', component: EmployeeLoginPage, meta: { public: true } },
 
-  { path: '/', redirect: '/dashboard' },
-  { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
+  { path: '/dashboard',          component: DashboardPage,        meta: { roles: ['CUSTOMER'] } },
+  { path: '/employee/dashboard', component: EmployeeDashboardPage, meta: { roles: ['EMPLOYEE'] } },
+
+  { path: '/',                   redirect: '/dashboard' },
+  { path: '/:pathMatch(.*)*',    redirect: '/dashboard' },
 ]
 
 const router = createRouter({
@@ -31,24 +38,31 @@ router.beforeEach(async (to) => {
 
   const isPublic      = to.meta.public
   const requiredRoles = to.meta.roles
+  const isEmployee    = EMPLOYEE_ROLES.includes(auth.role)
 
-  // If the route is public (login, register, unauthorized),
-  // let it through — UNLESS the user is logged in and trying
-  // to hit login/register (redirect them home instead).
   if (isPublic) {
-    const authOnlyPublic = ['/login', '/register']
-    if (auth.token && authOnlyPublic.includes(to.path)) {
-      return { path: '/dashboard' }
+    // Redirect already-authenticated users away from login/register pages
+    const customerPublic = ['/login', '/register']
+    const employeePublic = ['/employee/login']
+
+    if (auth.token) {
+      if (customerPublic.includes(to.path)) {
+        return { path: isEmployee ? '/employee/dashboard' : '/dashboard' }
+      }
+      if (employeePublic.includes(to.path) && isEmployee) {
+        return { path: '/employee/dashboard' }
+      }
     }
     return
   }
 
   if (!auth.token) {
-    return { path: '/login' }
+    const employeeRoute = to.path.startsWith('/employee')
+    return { path: employeeRoute ? '/employee/login' : '/login' }
   }
 
   if (requiredRoles && !requiredRoles.includes(auth.role)) {
-    return { path: '/unauthorized' }
+    return { path: isEmployee ? '/employee/dashboard' : '/unauthorized' }
   }
 })
 

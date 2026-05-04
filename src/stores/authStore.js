@@ -37,7 +37,8 @@ export const useAuthStore = defineStore('auth', {
         async fetchUser() {
             try {
                 const user = await authApi.fetchUser()
-                this.user = { ...user, approved: user.approved }
+                this.user = user
+                if (user.role) this.role = user.role
             } catch (err) {
                 this.error = 'Failed to fetch user data'
             } finally {
