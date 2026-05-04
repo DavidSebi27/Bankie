@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* ================= RESET ================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+/* ================= GLOBAL ================= */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  color: var(--color-body);
+  background: var(--color-bg);
+
+  font-feature-settings: "ss01";
+  line-height: var(--leading-normal);
+}
+
+/* ================= TYPOGRAPHY ================= */
+
+h1 {
+  font-size: var(--text-display-hero);
+  letter-spacing: var(--tracking-hero);
+  line-height: var(--leading-tight);
+  color: var(--color-heading);
+}
+
+h2 {
+  font-size: var(--text-heading-section);
+  letter-spacing: var(--tracking-section);
+  color: var(--color-heading);
+}
+
+p {
+  font-size: var(--text-body);
+}
+
+/* ================= UTILITIES ================= */
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-4);
+}

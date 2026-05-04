@@ -1,0 +1,10 @@
+.dash   { min-height: 100vh; background: #f4f6fb; }
+.layout { display: flex; }
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 900px;
+}
+
+.page-header { margin-bottom: 1.75rem; }

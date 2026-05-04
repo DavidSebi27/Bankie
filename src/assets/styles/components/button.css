@@ -1,0 +1,21 @@
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 my-2 rounded-[var(--radius-sm)] text-button font-normal transition;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-ghost {
+  @apply border border-border-purple;
+  color: var(--color-primary);
+}
+
+.btn-ghost:hover {
+  background: rgba(83, 58, 253, 0.05);
+}

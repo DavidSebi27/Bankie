@@ -1,0 +1,22 @@
+.gradient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.gradient::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+
+    background: linear-gradient(135deg,
+            var(--color-ruby),
+            var(--color-magenta));
+
+    opacity: 0.2;
+    filter: blur(120px);
+}
