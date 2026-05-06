@@ -13,12 +13,21 @@
           </p>
         </div>
 
-        <div v-if="store.notFound" class="not-found">
-          <h3>Page not found</h3>
-          <p>The page you're looking for doesn't exist.</p>
-        </div>
-
-        <TransactionsTable v-else />
+        <TransactionsTable
+          :items="items"
+          :page="page"
+          :total-pages="totalPages"
+          :total-elements="totalElements"
+          :first="first"
+          :last="last"
+          :loading="loading"
+          :error="error"
+          empty-title="No transactions yet"
+          empty-subtitle="Transactions will appear here once they're recorded."
+          title-suffix="total"
+          @refresh="fetch()"
+          @go-to-page="goToPage"
+        />
       </main>
     </div>
   </div>
@@ -27,15 +36,20 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useEmployeeStore }    from '../../stores/employeeStore'
-import { useTransactionStore } from '../../stores/transactionStore'
+import { useTransactionsList } from '../../composables/useTransactionsList'
+import { getTransactions }     from '../../api/transactions'
 import EmployeeSidebar    from '../../components/employee/EmployeeSidebar.vue'
 import TransactionsTable  from '../../components/employee/TransactionsTable.vue'
 
 const employeeStore = useEmployeeStore()
-const store         = useTransactionStore()
+
+const {
+  items, page, totalPages, totalElements, first, last,
+  loading, error, fetch, goToPage,
+} = useTransactionsList(getTransactions)
 
 onMounted(() => {
-  store.fetch()
+  fetch()
   if (!employeeStore.users.length) employeeStore.fetchUsers()
 })
 </script>
