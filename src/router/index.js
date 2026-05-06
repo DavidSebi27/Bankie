@@ -10,6 +10,7 @@ import EmployeeDashboardPage from '../views/employee/EmployeeDashboard.vue'
 import EmployeeTransactionsPage from '../views/employee/EmployeeTransactions.vue'
 import EmployeeCustomersPage from '../views/employee/EmployeeCustomers.vue'
 import EmployeeCustomerDetailPage from '../views/employee/EmployeeCustomerDetail.vue'
+import AtmPage from '../views/Atm.vue'
 
 const EMPLOYEE_ROLES = ['EMPLOYEE', 'ADMIN']
 
@@ -19,6 +20,8 @@ const routes = [
   { path: '/unauthorized', component: UnauthorizedPage, meta: { public: true } },
 
   { path: '/employee/login', component: EmployeeLoginPage, meta: { public: true } },
+
+  { path: '/atm', component: AtmPage, meta: { public: true, hideTopbar: true } },
 
   { path: '/dashboard',             component: DashboardPage,             meta: { roles: ['CUSTOMER'] } },
   { path: '/employee/dashboard',         component: EmployeeDashboardPage,       meta: { roles: ['EMPLOYEE'] } },
