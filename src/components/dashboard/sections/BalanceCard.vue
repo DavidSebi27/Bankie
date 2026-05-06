@@ -19,8 +19,7 @@ defineProps({
   accountCount: { type: Number, default: 0 }
 })
 
-const formatCurrency = (n) =>
-  new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
+import { formatCurrency } from '../../../composables/format'
 </script>
 
 <style scoped src="../../../assets/styles/dashboard/sections/BalanceCard.css" />
