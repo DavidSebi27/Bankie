@@ -4,6 +4,8 @@ import { useAuthStore } from '../stores/authStore'
 import LoginPage            from '../views/Login.vue'
 import RegisterPage         from '../views/Register.vue'
 import DashboardPage        from '../views/DashboardPage.vue'
+import AccountsPage         from '../views/AccountsPage.vue'
+import ProfilePage          from '../views/ProfilePage.vue'
 import UnauthorizedPage     from '../views/Unauthorized.vue'
 import EmployeeLoginPage    from '../views/EmployeeLogin.vue'
 import EmployeeDashboardPage from '../views/employee/EmployeeDashboard.vue'
@@ -17,7 +19,9 @@ const routes = [
 
   { path: '/employee/login', component: EmployeeLoginPage, meta: { public: true } },
 
-  { path: '/dashboard',          component: DashboardPage,        meta: { roles: ['CUSTOMER'] } },
+  { path: '/dashboard',          component: DashboardPage,         meta: { roles: ['CUSTOMER'] } },
+  { path: '/accounts',           component: AccountsPage,          meta: { roles: ['CUSTOMER'] } },
+  { path: '/profile',            component: ProfilePage,           meta: { roles: ['CUSTOMER'] } },
   { path: '/employee/dashboard', component: EmployeeDashboardPage, meta: { roles: ['EMPLOYEE'] } },
 
   { path: '/',                   redirect: '/dashboard' },

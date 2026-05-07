@@ -1,0 +1,111 @@
+.dash   { min-height: 100vh; background: #f4f6fb; }
+.layout { display: flex; }
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 900px;
+}
+
+.page-header { margin-bottom: 1.75rem; }
+
+/* ── Summary card ── */
+.summary-card {
+  background: linear-gradient(135deg, #1c1e54 0%, #2e2b8c 50%, #533afd 100%);
+  border-radius: 16px;
+  padding: 28px 32px;
+  color: white;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.summary-card::before {
+  content: ''; position: absolute;
+  top: -60px; right: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: rgba(249, 107, 238, 0.15);
+  pointer-events: none;
+}
+.summary-label {
+  font-size: 12px; letter-spacing: 0.8px;
+  opacity: 0.65; text-transform: uppercase;
+}
+.summary-amount {
+  font-size: 2.75rem; font-weight: 300;
+  letter-spacing: -1.4px; margin: 8px 0 4px;
+}
+.summary-meta { font-size: 13px; opacity: 0.6; }
+
+/* ── State boxes ── */
+.state-box {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px;
+  padding: 48px 24px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  text-align: center;
+}
+.state-icon  { width: 28px; height: 28px; color: var(--color-body); opacity: 0.35; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.state-spin  { animation: spin 1s linear infinite; opacity: 0.5; }
+.state-title { font-size: 14px; font-weight: 500; color: var(--color-heading); }
+.state-sub   { font-size: 12px; color: var(--color-body); }
+
+/* ── Account list ── */
+.section-label {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--color-body); margin-bottom: 10px;
+}
+
+.accounts-list { display: flex; flex-direction: column; gap: 10px; }
+
+.account-card {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  transition: border-color 0.15s;
+}
+.account-card:hover { border-color: var(--color-border-purple); }
+
+.account-icon-wrap {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-checking { background: #eeeeff; }
+.icon-savings  { background: #e8fdf0; }
+.account-icon  { width: 20px; height: 20px; }
+.icon-checking .account-icon { color: var(--color-primary); }
+.icon-savings  .account-icon { color: var(--color-success); }
+
+.account-details { flex: 1; min-width: 0; }
+.account-id    { font-size: 14px; font-weight: 500; color: var(--color-heading); }
+.account-type      { font-size: 11px; color: var(--color-body); margin-top: 2px; }
+
+.iban-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 6px;
+}
+.iban-text {
+  font-size: 13px; font-family: monospace; color: var(--color-label);
+  letter-spacing: 0.5px;
+}
+.copy-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: none; border: 1px solid var(--color-border);
+  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+}
+.copy-btn:hover { border-color: var(--color-border-purple); background: #f4f6ff; }
+.copy-btn.copied { border-color: var(--color-success); background: #e8fdf0; }
+.copy-icon { width: 12px; height: 12px; color: var(--color-body); }
+.copy-btn.copied .copy-icon { color: var(--color-success); }
+
+.account-balance { text-align: right; flex-shrink: 0; }
+.balance-amount  {
+  font-size: 1.2rem; font-weight: 300;
+  color: var(--color-heading); letter-spacing: -0.5px;
+}
+.balance-currency { font-size: 11px; color: var(--color-body); margin-top: 2px; }
