@@ -4,8 +4,13 @@ import * as accountsApi from '../api/accounts'
 export const useAccountStore = defineStore('accounts', {
     state: () => ({
         accounts: [],
-        loading:  false,
-        error:    null,
+        loading: false,
+        error: null,
+
+        searchResults: [],
+        searchLoading: false,
+        searchError: null,
+        searched: false,
     }),
 
     getters: {
@@ -16,9 +21,9 @@ export const useAccountStore = defineStore('accounts', {
     actions: {
         async fetchAccounts() {
             this.loading = true
-            this.error   = null
+            this.error = null
             try {
-                const res  = await accountsApi.getMyAccounts()
+                const res = await accountsApi.getMyAccounts()
                 const data = res.data
                 this.accounts = Array.isArray(data) ? data : (data.content ?? [])
             } catch (err) {
@@ -26,6 +31,29 @@ export const useAccountStore = defineStore('accounts', {
             } finally {
                 this.loading = false
             }
+        },
+
+        async searchCustomers(firstName, lastName) {
+            this.searchLoading = true
+            this.searchError = null
+            this.searched = false
+            this.searchResults = []
+            try {
+                const res = await accountsApi.searchCustomersByName(firstName, lastName)
+                const data = res.data
+                this.searchResults = Array.isArray(data) ? data : (data.content ?? [])
+                this.searched = true
+            } catch (err) {
+                this.searchError = err.response?.data?.message || 'Search failed'
+            } finally {
+                this.searchLoading = false
+            }
+        },
+
+        clearSearch() {
+            this.searchResults = []
+            this.searchError = null
+            this.searched = false
         },
     },
 })
