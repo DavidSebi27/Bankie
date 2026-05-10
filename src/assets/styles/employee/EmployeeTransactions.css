@@ -1,0 +1,28 @@
+.dash   { min-height: 100vh; background: #f4f6fb; }
+.layout { display: flex; }
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+}
+
+.page-header { margin-bottom: 1.75rem; }
+
+.not-found {
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.not-found h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-heading);
+  margin-bottom: 6px;
+}
+.not-found p {
+  font-size: 13px;
+  color: var(--color-body);
+}

@@ -3,6 +3,11 @@
     <h1 class="logo">Banki<span>e</span></h1>
 
     <div class="topbar-right">
+      <RouterLink v-if="auth.role === 'CUSTOMER'" to="/atm" class="atm-link">
+        <Banknote class="atm-icon" />
+        <span>ATM</span>
+      </RouterLink>
+
       <button class="notif-btn" aria-label="Notifications">
         <Bell class="notif-bell" />
         <span class="notif-dot" />
@@ -41,7 +46,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useUserInitials } from '../../composables/useUserInitials'
-import { Bell, ChevronDown, User, Settings, LogOut } from 'lucide-vue-next'
+import { Bell, ChevronDown, User, Settings, LogOut, Banknote } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
