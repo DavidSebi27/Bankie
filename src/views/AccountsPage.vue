@@ -34,7 +34,7 @@
         </div>
 
         <div v-else class="accounts-list">
-          <div v-for="account in store.accounts" :key="account.id" class="account-card">
+          <div v-for="account in store.accounts" :key="account.iban" class="account-card">
 
             <div class="account-icon-wrap" :class="iconClass(account.type)">
               <component :is="accountIcon(account.type)" class="account-icon" />
@@ -49,7 +49,7 @@
                   class="copy-btn"
                   :class="{ copied: copiedId === account.id }"
                   :title="copiedId === account.id ? 'Copied!' : 'Copy IBAN'"
-                  @click="copyIban(account.iban, account.id)"
+                  @click="copyIban(account.iban, account.iban)"
                 >
                   <CopyCheck v-if="copiedId === account.id" class="copy-icon" />
                   <Copy v-else class="copy-icon" />
