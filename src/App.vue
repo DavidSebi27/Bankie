@@ -16,7 +16,7 @@ const route = useRoute()
 
 <template>
   <div class="min-h-screen bg-bg text-body">
-    <AppTopbar v-if="auth.token" />
+    <AppTopbar v-if="auth.token && !route.meta.hideTopbar" />
     <router-view />
   </div>
 </template>

@@ -29,6 +29,32 @@
   position: relative;
 }
 
+/* ── ATM link ── */
+.atm-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-label);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.atm-link:hover {
+  border-color: var(--color-border-purple);
+  color: var(--color-primary);
+}
+.atm-icon {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+}
+
 /* ── Notification button ── */
 .notif-btn {
   width: 34px;
