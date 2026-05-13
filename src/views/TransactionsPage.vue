@@ -8,6 +8,72 @@
           <p class="text-caption text-body">Your full transaction history</p>
         </div>
 
+        <div class="filter-panel">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">From</label>
+              <input type="date" v-model="localFilters.startDate" class="filter-input" />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">To</label>
+              <input type="date" v-model="localFilters.endDate" class="filter-input" />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Type</label>
+              <select v-model="localFilters.type" class="filter-select filter-select-full">
+                <option value="">All</option>
+                <option value="TRANSFER">Transfer</option>
+                <option value="DEPOSIT">Deposit</option>
+                <option value="WITHDRAWAL">Withdrawal</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Min Amount</label>
+              <input
+                type="number"
+                v-model="localFilters.minAmount"
+                class="filter-input filter-num"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Max Amount</label>
+              <input
+                type="number"
+                v-model="localFilters.maxAmount"
+                class="filter-input filter-num"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div class="filter-group filter-group-iban">
+              <label class="filter-label">IBAN</label>
+              <input
+                type="text"
+                v-model="localFilters.iban"
+                class="filter-input"
+                placeholder="NL00 BANK 0000 0000 00"
+                @keyup.enter="applyFilters"
+              />
+            </div>
+          </div>
+          <div class="filter-actions">
+            <button
+              v-if="hasLocal || store.hasActiveFilters"
+              class="filter-btn-reset"
+              @click="resetFilters"
+            >
+              <X class="filter-icon" /> Reset
+            </button>
+            <button class="filter-btn-apply" @click="applyFilters" :disabled="store.loading">
+              <SlidersHorizontal class="filter-icon" /> Apply
+            </button>
+          </div>
+        </div>
+
         <div v-if="store.loading" class="state-box">
           <Loader2 class="state-icon state-spin" />
           <p class="state-title">Loading transactions…</p>
@@ -21,8 +87,8 @@
 
         <div v-else-if="!store.transactions.length" class="state-box">
           <ArrowLeftRight class="state-icon" />
-          <p class="state-title">No transactions yet</p>
-          <p class="state-sub">Your transactions will appear here.</p>
+          <p class="state-title">No transactions found</p>
+          <p class="state-sub">Try adjusting your filters or check back later.</p>
         </div>
 
         <div v-else class="tx-list">
@@ -74,11 +140,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import {
   Loader2, AlertCircle, ArrowLeftRight,
   ArrowDownLeft, ArrowUpRight,
   ChevronLeft, ChevronRight,
+  SlidersHorizontal, X,
 } from 'lucide-vue-next'
 import DashboardSidebar from '../components/dashboard/DashboardSidebar.vue'
 import { useTransactionStore } from '../stores/transactionStore'
@@ -110,6 +177,23 @@ function formatTimestamp(iso) {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }).format(new Date(iso))
+}
+
+const localFilters = reactive({ startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '' })
+
+const hasLocal = computed(() =>
+  !!(localFilters.startDate || localFilters.endDate ||
+     localFilters.type ||
+     localFilters.minAmount !== '' || localFilters.maxAmount !== '' ||
+     localFilters.iban))
+
+function applyFilters() {
+  store.applyFilters({ ...localFilters })
+}
+
+function resetFilters() {
+  Object.assign(localFilters, { startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '' })
+  store.resetFilters()
 }
 </script>
 

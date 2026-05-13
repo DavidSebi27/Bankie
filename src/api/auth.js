@@ -8,6 +8,6 @@ export const register = (data) => {
 }
 
 export const fetchUser = async () => {
-    const res = await api.get('/users/me')
+    const res = await api.get('/me')
     return res.data
 }
