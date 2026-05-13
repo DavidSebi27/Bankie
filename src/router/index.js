@@ -7,6 +7,7 @@ import DashboardPage from '../views/DashboardPage.vue'
 import AccountsPage from '../views/AccountsPage.vue'
 import ProfilePage from '../views/ProfilePage.vue'
 import TransferPage from '../views/TransferPage.vue'
+import TransactionsPage from '../views/TransactionsPage.vue'
 import UnauthorizedPage from '../views/Unauthorized.vue'
 import EmployeeLoginPage from '../views/EmployeeLogin.vue'
 import EmployeeDashboardPage from '../views/employee/EmployeeDashboard.vue'
@@ -23,6 +24,7 @@ const routes = [
   { path: '/dashboard', component: DashboardPage, meta: { roles: ['CUSTOMER'] } },
   { path: '/accounts', component: AccountsPage, meta: { roles: ['CUSTOMER'] } },
   { path: '/transfer', component: TransferPage, meta: { roles: ['CUSTOMER'] } },
+  { path: '/transactions', component: TransactionsPage, meta: { roles: ['CUSTOMER'] } },
   { path: '/profile', component: ProfilePage, meta: { roles: ['CUSTOMER'] } },
   { path: '/employee/dashboard', component: EmployeeDashboardPage, meta: { roles: ['EMPLOYEE'] } },
 

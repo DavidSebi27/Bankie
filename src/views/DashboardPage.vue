@@ -1,7 +1,7 @@
 <template>
   <div class="dash">
     <div class="layout">
-      <DashboardSidebar v-if="auth.user?.approved" :pending-count="pendingCount" />
+      <DashboardSidebar v-if="auth.user?.approved"/>
 
       <DashboardPending v-if="!auth.user?.approved" :first-name="auth.user?.firstName" :refreshing="refreshing"
         @refresh="refreshUser" />
@@ -16,10 +16,6 @@
 
         <BalanceCard :total-balance="totalBalance" :account-count="accounts.length" />
 
-        <QuickActions />
-
-        <StatsGrid :income="stats.income" :expenses="stats.expenses" :savings-rate="stats.savingsRate" />
-
         <div class="bottom-grid">
           <RecentTransactions :transactions="recentTransactions" />
           <MyCards :cards="myCards" />
@@ -31,36 +27,31 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useAuthStore }    from '../stores/authStore'
-import { useAccountStore } from '../stores/accountStore'
+import { useAuthStore }        from '../stores/authStore'
+import { useAccountStore }     from '../stores/accountStore'
+import { useTransactionStore } from '../stores/transactionStore'
 import { useApprovalPolling } from '../composables/useApprovalPolling'
 import { accountLabel } from '../composables/accountLabel'
 import DashboardSidebar from '../components/dashboard/DashboardSidebar.vue'
 import DashboardPending from '../components/dashboard/DashboardPending.vue'
 import BalanceCard from '../components/dashboard/sections/BalanceCard.vue'
-import QuickActions from '../components/dashboard/sections/QuickActions.vue'
-import StatsGrid from '../components/dashboard/sections/StatsGrid.vue'
 import RecentTransactions from '../components/dashboard/sections/RecentTransactions.vue'
 import MyCards from '../components/dashboard/sections/MyCards.vue'
 
-const auth         = useAuthStore()
-const accountStore = useAccountStore()
+const auth             = useAuthStore()
+const accountStore     = useAccountStore()
+const transactionStore = useTransactionStore()
 const { refreshing, refreshUser } = useApprovalPolling()
 
-onMounted(() => accountStore.fetchAccounts())
+onMounted(() => {
+  accountStore.fetchAccounts()
+  transactionStore.fetchTransactions()
+})
 
 const totalBalance = computed(() => accountStore.totalBalance)
 const accounts     = computed(() => accountStore.accounts)
 
-const pendingCount = 4
-const stats = { income: 5240, expenses: 2847, savingsRate: 45.6 }
-
-const recentTransactions = [
-  { id: 1, emoji: '🛒', name: 'Albert Heijn', date: 'Today, 09:14', type: 'debit', amount: 43.20 },
-  { id: 2, emoji: '💼', name: 'Salary — Acme', date: 'Yesterday, 08:00', type: 'credit', amount: 3500 },
-  { id: 3, emoji: '🍕', name: 'Takeaway.com', date: 'Apr 30, 19:45', type: 'debit', amount: 28.50 },
-  { id: 4, emoji: '🎵', name: 'Spotify', date: 'Apr 29, 00:00', type: 'debit', amount: 10.99 },
-]
+const recentTransactions = computed(() => transactionStore.recentFive)
 
 const GRADIENTS = [
   'linear-gradient(135deg,#533afd,#2e2b8c)',
