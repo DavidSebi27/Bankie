@@ -3,3 +3,11 @@ export const formatCurrency = (n) =>
 
 export const formatIban = (iban) =>
   iban?.replace(/(.{4})/g, '$1 ').trim() ?? '—'
+
+export const formatTimestamp = (ts) => {
+  if (!ts) return ''
+  return new Date(ts).toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
+}

@@ -173,11 +173,11 @@ import EmployeeSidebar from '../../components/employee/EmployeeSidebar.vue'
 import { useEmployeeStore } from '../../stores/employeeStore'
 import { useAccountStore }  from '../../stores/accountStore'
 import { createTransfer }   from '../../api/transactions'
+import { validateIban, validateAmount, mapTransferError } from '../../composables/validation'
+import { formatTimestamp } from '../../composables/format'
 
 const employeeStore = useEmployeeStore()
 const accountStore  = useAccountStore()
-
-const IBAN_RE = /^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/
 
 const form = reactive({
   fromIban: '',
@@ -205,36 +205,10 @@ Object.keys(form).forEach(key => {
 })
 
 const validate = () => {
-  let ok = true
-  errors.fromIban = ''
-  errors.toIban   = ''
-  errors.amount   = ''
-
-  if (!form.fromIban) {
-    errors.fromIban = 'Source IBAN is required'
-    ok = false
-  } else if (!IBAN_RE.test(form.fromIban)) {
-    errors.fromIban = 'Invalid IBAN format'
-    ok = false
-  }
-
-  if (!form.toIban) {
-    errors.toIban = 'Destination IBAN is required'
-    ok = false
-  } else if (!IBAN_RE.test(form.toIban)) {
-    errors.toIban = 'Invalid IBAN format'
-    ok = false
-  }
-
-  if (form.amount == null || form.amount === '') {
-    errors.amount = 'Amount is required'
-    ok = false
-  } else if (!(form.amount > 0)) {
-    errors.amount = 'Amount must be greater than zero'
-    ok = false
-  }
-
-  return ok
+  errors.fromIban = validateIban(form.fromIban)
+  errors.toIban   = validateIban(form.toIban)
+  errors.amount   = validateAmount(form.amount)
+  return !errors.fromIban && !errors.toIban && !errors.amount
 }
 
 const handleSubmit = async () => {
@@ -250,25 +224,9 @@ const handleSubmit = async () => {
     })
     success.value = res.data
   } catch (err) {
-    const status  = err.response?.status
-    const message = err.response?.data?.message || 'Transfer failed'
-
-    if (status === 400) {
-      // Server-side validation — try to attribute to a field if the message mentions one
-      const lower = message.toLowerCase()
-      if (lower.includes('fromiban') || lower.includes('source'))      errors.fromIban = message
-      else if (lower.includes('toiban') || lower.includes('destination')) errors.toIban   = message
-      else if (lower.includes('amount'))                                 errors.amount   = message
-      else formError.value = message
-    } else if (status === 422) {
-      // Business rule violation — surface verbatim
-      formError.value = message
-    } else if (status === 404) {
-      // Auth oracle — backend treats missing/invalid token or non-employee as 404
-      formError.value = 'You don\'t have permission to initiate transfers.'
-    } else {
-      formError.value = message
-    }
+    const { field, message } = mapTransferError(err)
+    if (field) errors[field] = message
+    else       formError.value = message
   } finally {
     submitting.value = false
   }
@@ -306,14 +264,6 @@ const pickResult = (r) => {
   if (searchTarget.value === 'source')      form.fromIban = r.iban
   if (searchTarget.value === 'destination') form.toIban   = r.iban
   closeSearch()
-}
-
-const formatTimestamp = (ts) => {
-  if (!ts) return ''
-  return new Date(ts).toLocaleString(undefined, {
-    year: 'numeric', month: 'short', day: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  })
 }
 
 onMounted(() => {
