@@ -8,3 +8,9 @@ export const getCustomerTransactions = (customerId, params) =>
 
 export const createTransfer = (body) =>
     api.post('/transactions', body)
+
+export const deposit = (body) =>
+    api.post('/transactions/deposit', body)
+
+export const withdraw = (body) =>
+    api.post('/transactions/withdraw', body)

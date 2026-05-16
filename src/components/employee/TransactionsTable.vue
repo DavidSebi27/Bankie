@@ -48,8 +48,8 @@
                   {{ t.type }}
                 </span>
               </td>
-              <td class="iban">{{ t.fromIban || '—' }}</td>
-              <td class="iban">{{ t.toIban || '—' }}</td>
+              <td class="iban">{{ t.fromIban || cashLabel(t.type, 'from') }}</td>
+              <td class="iban">{{ t.toIban || cashLabel(t.type, 'to') }}</td>
               <td class="num amount">€{{ t.amount }}</td>
               <td class="timestamp">{{ formatTimestamp(t.timestamp) }}</td>
               <td>{{ t.initiatedByName || (t.initiatedById ? `User #${t.initiatedById}` : '—') }}</td>
@@ -102,6 +102,12 @@ const typeIcon = (type) => {
   if (type === 'DEPOSIT')    return ArrowDownLeft
   if (type === 'WITHDRAWAL') return ArrowUpRight
   return ArrowLeftRight
+}
+
+const cashLabel = (type, side) => {
+  if (type === 'DEPOSIT' && side === 'from')  return 'Cash'
+  if (type === 'WITHDRAWAL' && side === 'to') return 'Cash'
+  return '—'
 }
 
 const formatTimestamp = (ts) => {
