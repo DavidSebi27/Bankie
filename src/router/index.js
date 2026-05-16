@@ -14,6 +14,7 @@ import EmployeeDashboardPage from '../views/employee/EmployeeDashboard.vue'
 import EmployeeTransactionsPage from '../views/employee/EmployeeTransactions.vue'
 import EmployeeCustomersPage from '../views/employee/EmployeeCustomers.vue'
 import EmployeeCustomerDetailPage from '../views/employee/EmployeeCustomerDetail.vue'
+import EmployeeTransferPage from '../views/employee/EmployeeTransfer.vue'
 import AtmPage from '../views/Atm.vue'
 
 const EMPLOYEE_ROLES = ['EMPLOYEE', 'ADMIN']
@@ -36,6 +37,7 @@ const routes = [
   { path: '/employee/transactions', component: EmployeeTransactionsPage, meta: { roles: ['EMPLOYEE'] } },
   { path: '/employee/customers', component: EmployeeCustomersPage, meta: { roles: ['EMPLOYEE'] } },
   { path: '/employee/customers/:id', component: EmployeeCustomerDetailPage, meta: { roles: ['EMPLOYEE'] } },
+  { path: '/employee/transfer', component: EmployeeTransferPage, meta: { roles: ['EMPLOYEE'] } },
 
   { path: '/', redirect: '/dashboard' },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' },

@@ -2,8 +2,13 @@
   <div class="atm">
     <div class="atm-frame">
       <header class="atm-brand">
-        <Banknote class="brand-icon" />
-        <span class="brand-name">Bankie ATM</span>
+        <div class="brand-mark">
+          <Banknote class="brand-icon" />
+          <span class="brand-name">Bankie ATM</span>
+        </div>
+        <RouterLink to="/dashboard" class="exit-link">
+          <ArrowLeft class="exit-icon" /> Exit ATM
+        </RouterLink>
       </header>
 
       <!-- 1) Logged in but wrong role / unapproved → block -->
@@ -42,7 +47,7 @@
         </div>
 
         <div v-else class="accounts">
-          <article v-for="acct in accounts" :key="acct.id" class="account">
+          <article v-for="acct in accounts" :key="acct.iban" class="account">
             <div class="account-head">
               <Wallet class="account-icon" />
               <div class="account-meta">
@@ -52,17 +57,84 @@
               <p class="account-balance">€{{ formatBalance(acct.balance) }}</p>
             </div>
 
-            <div class="account-actions">
-              <button class="atm-btn atm-btn-deposit" disabled title="Coming soon">
+            <!-- Default action buttons -->
+            <div v-if="action?.iban !== acct.iban" class="account-actions">
+              <button class="atm-btn atm-btn-deposit" @click="startAction(acct, 'deposit')">
                 <ArrowDownToLine class="btn-icon" /> Deposit
               </button>
-              <button class="atm-btn atm-btn-withdraw" disabled title="Coming soon">
+              <button class="atm-btn atm-btn-withdraw" @click="startAction(acct, 'withdraw')">
                 <ArrowUpFromLine class="btn-icon" /> Withdraw
               </button>
             </div>
-          </article>
 
-          <p class="note">Deposit and withdraw are coming soon.</p>
+            <!-- Inline action form -->
+            <form v-else class="action-form" @submit.prevent="submitAction(acct)">
+              <p class="action-prompt">
+                {{ action.type === 'deposit' ? 'Deposit to' : 'Withdraw from' }}
+                <strong>{{ acct.type || 'Account' }}</strong>
+              </p>
+
+              <div class="amount-wrap">
+                <span class="amount-prefix">€</span>
+                <input
+                  ref="amountInputRef"
+                  v-model.number="action.amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  class="amount-input"
+                  :class="{ 'has-error': action.error }"
+                  placeholder="0.00"
+                  :disabled="action.submitting"
+                />
+              </div>
+
+              <div class="quick-amounts">
+                <button
+                  v-for="q in quickAmounts"
+                  :key="q"
+                  type="button"
+                  class="quick-btn"
+                  :disabled="action.submitting"
+                  @click="action.amount = q"
+                >
+                  €{{ q }}
+                </button>
+              </div>
+
+              <p v-if="action.error" class="action-error">
+                <AlertCircle class="action-error-icon" />
+                {{ action.error }}
+              </p>
+
+              <p v-if="action.success" class="action-success">
+                <CheckCircle class="action-success-icon" />
+                {{ action.success }}
+              </p>
+
+              <div class="action-buttons">
+                <button
+                  type="button"
+                  class="atm-btn atm-btn-ghost"
+                  :disabled="action.submitting"
+                  @click="cancelAction"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="atm-btn"
+                  :class="action.type === 'deposit' ? 'atm-btn-deposit' : 'atm-btn-withdraw'"
+                  :disabled="action.submitting || !(action.amount > 0)"
+                >
+                  <Loader2 v-if="action.submitting" class="btn-icon spin" />
+                  {{ action.submitting
+                    ? (action.type === 'deposit' ? 'Depositing…' : 'Withdrawing…')
+                    : (action.type === 'deposit' ? 'Confirm deposit' : 'Confirm withdraw') }}
+                </button>
+              </div>
+            </form>
+          </article>
         </div>
 
         <button class="end-session" @click="handleSignOut">
@@ -99,15 +171,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
+import { RouterLink } from 'vue-router'
 import {
-  Banknote, AlertCircle, Loader2, CircleSlash, Wallet,
-  ArrowDownToLine, ArrowUpFromLine, LogOut,
+  Banknote, AlertCircle, CheckCircle, Loader2, CircleSlash, Wallet,
+  ArrowDownToLine, ArrowUpFromLine, ArrowLeft, LogOut,
 } from 'lucide-vue-next'
 import BaseInput  from '../components/ui/BaseInput.vue'
 import BaseButton from '../components/ui/BaseButton.vue'
 import { useAuthStore } from '../stores/authStore'
 import { getMyAccounts } from '../api/accounts'
+import { deposit, withdraw } from '../api/transactions'
 
 const auth = useAuthStore()
 
@@ -128,6 +202,12 @@ Object.keys(form).forEach(key => {
 const accounts        = ref([])
 const loadingAccounts = ref(false)
 const accountsError   = ref(null)
+
+const quickAmounts = [20, 50, 100, 200]
+
+// Inline action state — one at a time across the page
+const action = ref(null)
+const amountInputRef = ref(null)
 
 const block = computed(() => {
   if (!auth.token) return null
@@ -168,6 +248,65 @@ const loadAccounts = async () => {
   }
 }
 
+const startAction = (acct, type) => {
+  action.value = {
+    iban: acct.iban,
+    type, // 'deposit' | 'withdraw'
+    amount: null,
+    submitting: false,
+    error: '',
+    success: '',
+  }
+  nextTick(() => amountInputRef.value?.focus())
+}
+
+const cancelAction = () => {
+  action.value = null
+}
+
+const submitAction = async (acct) => {
+  if (!action.value) return
+  const { type, amount } = action.value
+  if (!(amount > 0)) return
+
+  action.value.submitting = true
+  action.value.error      = ''
+  action.value.success    = ''
+
+  try {
+    const fn = type === 'deposit' ? deposit : withdraw
+    await fn({ iban: acct.iban, amount: Number(amount) })
+
+    action.value.success = type === 'deposit'
+      ? `€${amount} deposited.`
+      : `€${amount} dispensed. Please collect your cash.`
+
+    // Refresh balances before closing the form
+    await loadAccounts()
+
+    // Auto-close after a short pause so the user reads the confirmation
+    setTimeout(() => {
+      if (action.value && action.value.iban === acct.iban) cancelAction()
+    }, 2500)
+  } catch (err) {
+    const status  = err.response?.status
+    const message = err.response?.data?.message
+
+    if (status === 400) {
+      action.value.error = message || 'Invalid amount or IBAN'
+    } else if (status === 422) {
+      // Surface the business-rule message verbatim
+      action.value.error = message || 'Transaction declined'
+    } else if (status === 404) {
+      action.value.error = 'Session expired. Please sign out and back in.'
+    } else {
+      action.value.error = message || 'Something went wrong. Please try again.'
+    }
+  } finally {
+    if (action.value) action.value.submitting = false
+  }
+}
+
 const validate = () => {
   let ok = true
   if (!form.email)    { errors.email    = 'Email is required'; ok = false }
@@ -192,6 +331,7 @@ const handleLogin = async () => {
 const handleSignOut = () => {
   auth.logout()
   accounts.value = []
+  action.value   = null
 }
 
 watch(ready, (isReady) => {

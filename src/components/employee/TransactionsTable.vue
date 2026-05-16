@@ -48,8 +48,8 @@
                   {{ t.type }}
                 </span>
               </td>
-              <td class="iban">{{ t.fromIban || '—' }}</td>
-              <td class="iban">{{ t.toIban || '—' }}</td>
+              <td class="iban">{{ t.fromIban || cashLabel(t.type, 'from') }}</td>
+              <td class="iban">{{ t.toIban || cashLabel(t.type, 'to') }}</td>
               <td class="num amount">€{{ t.amount }}</td>
               <td class="timestamp">{{ formatTimestamp(t.timestamp) }}</td>
               <td>{{ t.initiatedByName || (t.initiatedById ? `User #${t.initiatedById}` : '—') }}</td>
@@ -81,6 +81,7 @@ import {
   ChevronLeft, ChevronRight,
   ArrowDownLeft, ArrowUpRight, ArrowLeftRight,
 } from 'lucide-vue-next'
+import { formatTimestamp } from '../../composables/format'
 
 defineProps({
   items:         { type: Array,   default: () => [] },
@@ -104,14 +105,12 @@ const typeIcon = (type) => {
   return ArrowLeftRight
 }
 
-const formatTimestamp = (ts) => {
-  if (!ts) return ''
-  const d = new Date(ts)
-  return d.toLocaleString(undefined, {
-    year: 'numeric', month: 'short', day: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  })
+const cashLabel = (type, side) => {
+  if (type === 'DEPOSIT' && side === 'from')  return 'Cash'
+  if (type === 'WITHDRAWAL' && side === 'to') return 'Cash'
+  return '—'
 }
+
 </script>
 
 <style scoped src="../../assets/styles/employee/TransactionsTable.css" />

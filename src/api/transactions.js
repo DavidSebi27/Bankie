@@ -6,4 +6,11 @@ export const getTransactions = (params = {}) =>
 export const getCustomerTransactions = (customerId, params) =>
     api.get(`/customers/${customerId}/transactions`, { params })
 
-export const createTransfer = (data) => api.post('/transactions', data)
+export const createTransfer = (body) =>
+    api.post('/transactions', body)
+
+export const deposit = (body) =>
+    api.post('/transactions/deposit', body)
+
+export const withdraw = (body) =>
+    api.post('/transactions/withdraw', body)

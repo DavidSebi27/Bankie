@@ -20,9 +20,14 @@
 .atm-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 12px;
   color: white;
+}
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .brand-icon {
   width: 28px;
@@ -35,6 +40,25 @@
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+.exit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.15s;
+}
+.exit-link:hover {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+.exit-icon { width: 13px; height: 13px; }
 
 .atm-card {
   background: rgba(255, 255, 255, 0.97);
@@ -241,3 +265,118 @@
   border-color: var(--color-ruby);
   color: var(--color-ruby);
 }
+
+/* ── Inline deposit/withdraw form ── */
+.action-form {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-prompt {
+  font-size: 13px;
+  color: var(--color-body);
+}
+.action-prompt strong {
+  color: var(--color-heading);
+  font-weight: 500;
+}
+
+.amount-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.amount-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(83, 58, 253, 0.12);
+}
+.amount-prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  background: #f4f6fb;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--color-body);
+  border-right: 1px solid var(--color-border);
+}
+.amount-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 14px 14px;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--color-heading);
+  background: transparent;
+  width: 100%;
+  -moz-appearance: textfield;
+}
+.amount-input::-webkit-outer-spin-button,
+.amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.amount-input.has-error { color: var(--color-ruby); }
+
+.quick-amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.quick-btn {
+  padding: 8px 0;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-label);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.quick-btn:hover:not(:disabled) {
+  border-color: var(--color-border-purple);
+  color: var(--color-primary);
+}
+.quick-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.action-error,
+.action-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.action-error {
+  background: #fde8ef;
+  border: 1px solid #f7c2d6;
+  color: var(--color-ruby);
+}
+.action-success {
+  background: rgba(21, 190, 83, 0.12);
+  border: 1px solid #b8e8c7;
+  color: var(--color-success-text);
+}
+.action-error-icon,
+.action-success-icon {
+  width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+.action-buttons .atm-btn { flex: 1; }
+.action-buttons .atm-btn-ghost { flex: 0 0 auto; }
