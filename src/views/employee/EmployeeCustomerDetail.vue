@@ -25,7 +25,6 @@
             <div class="customer-meta">
               <h2 class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</h2>
               <p class="customer-email">{{ customer.email }}</p>
-
               <div class="meta-grid">
                 <div v-if="customer.bsn" class="meta-line">
                   <Hash class="meta-icon" />
@@ -44,43 +43,43 @@
             </span>
           </div>
 
-          <!-- Approve customer (only shown if not yet approved) -->
+          <!-- Approve -->
           <div v-if="!customer.approved" class="section-header">
             <h3 class="section-title">Approve Customer</h3>
             <p class="section-sub">Creates a checking and savings account for this customer.</p>
             <div class="limits-form">
               <label>Absolute Limit</label>
-              <input v-model.number="approveForm.absoluteLimit" type="number" placeholder="e.g. 0" />
+              <input v-model.number="accountMgmt.approveForm.absoluteLimit" type="number" placeholder="e.g. 0" />
               <label>Daily Transfer Limit</label>
-              <input v-model.number="approveForm.dailyTransferLimit" type="number" placeholder="e.g. 1000" />
-              <p v-if="approveValidationError" class="error-msg">{{ approveValidationError }}</p>
-              <button class="btn-approve" :disabled="approving" @click="handleApprove">
-                {{ approving ? 'Approving…' : 'Approve & Create Accounts' }}
+              <input v-model.number="accountMgmt.approveForm.dailyTransferLimit" type="number" placeholder="e.g. 1000" />
+              <p v-if="accountMgmt.approveValidationError" class="error-msg">{{ accountMgmt.approveValidationError }}</p>
+              <button class="btn-approve" :disabled="accountMgmt.approving" @click="accountMgmt.handleApprove(customerId, employeeStore.fetchUsers)">
+                {{ accountMgmt.approving ? 'Approving…' : 'Approve & Create Accounts' }}
               </button>
-              <p v-if="approveError" class="error-msg">{{ approveError }}</p>
-              <p v-if="approveSuccess" class="success-msg">{{ approveSuccess }}</p>
+              <p v-if="accountMgmt.approveError" class="error-msg">{{ accountMgmt.approveError }}</p>
+              <p v-if="accountMgmt.approveSuccess" class="success-msg">{{ accountMgmt.approveSuccess }}</p>
             </div>
           </div>
 
-          <!-- Accounts list -->
+          <!-- Accounts -->
           <div v-if="customer.approved" class="section-header">
             <h3 class="section-title">Accounts</h3>
             <p class="section-sub">Manage this customer's accounts.</p>
 
-            <div v-if="accountsLoading" class="state-box">
+            <div v-if="accountMgmt.accountsLoading" class="state-box">
               <Loader2 class="state-icon spin" />
             </div>
 
-            <div v-else-if="accountsError" class="state-box">
-              <p class="state-title error-msg">{{ accountsError }}</p>
+            <div v-else-if="accountMgmt.accountsError" class="state-box">
+              <p class="state-title error-msg">{{ accountMgmt.accountsError }}</p>
             </div>
 
-            <div v-else-if="accounts.length === 0" class="state-box">
+            <div v-else-if="accountMgmt.accounts.length === 0" class="state-box">
               <p class="state-title">No accounts found.</p>
             </div>
 
             <div v-else class="accounts-list">
-              <div v-for="acc in accounts" :key="acc.iban" class="account-row">
+              <div v-for="acc in accountMgmt.accounts" :key="acc.iban" class="account-row">
                 <div class="account-info">
                   <p class="account-iban">{{ acc.iban }}</p>
                   <p class="account-type">{{ acc.type }} — {{ acc.status }}</p>
@@ -90,31 +89,24 @@
                     Daily limit: €{{ acc.dailyTransferLimit }}
                   </p>
                 </div>
-
                 <div class="account-actions">
                   <div class="inline-action">
-                    <input v-model.number="limitForms[acc.iban].absoluteLimit" type="number" placeholder="Absolute limit" />
-                    <button @click="handleAbsoluteLimit(acc.iban)">Set</button>
+                    <input v-model.number="accountMgmt.limitForms[acc.iban].absoluteLimit" type="number" placeholder="Absolute limit" />
+                    <button @click="accountMgmt.handleAbsoluteLimit(acc.iban, customerId)">Set</button>
                   </div>
-
                   <div class="inline-action">
-                    <input v-model.number="limitForms[acc.iban].dailyLimit" type="number" placeholder="Daily limit" />
-                    <button @click="handleDailyLimit(acc.iban)">Set</button>
+                    <input v-model.number="accountMgmt.limitForms[acc.iban].dailyLimit" type="number" placeholder="Daily limit" />
+                    <button @click="accountMgmt.handleDailyLimit(acc.iban, customerId)">Set</button>
                   </div>
-
-                  <button
-                    v-if="acc.status !== 'CLOSED'"
-                    class="btn-close"
-                    @click="handleClose(acc.iban)"
-                  >
+                  <button v-if="acc.status !== 'CLOSED'" class="btn-close" @click="accountMgmt.handleClose(acc.iban, customerId)">
                     Close Account
                   </button>
                   <span v-else class="badge-closed">Closed</span>
                 </div>
               </div>
             </div>
-            <p v-if="accountActionMsg" class="success-msg">{{ accountActionMsg }}</p>
-            <p v-if="accountActionError" class="error-msg">{{ accountActionError }}</p>
+            <p v-if="accountMgmt.accountActionMsg" class="success-msg">{{ accountMgmt.accountActionMsg }}</p>
+            <p v-if="accountMgmt.accountActionError" class="error-msg">{{ accountMgmt.accountActionError }}</p>
           </div>
 
           <div class="section-header">
@@ -133,7 +125,7 @@
             :error="error"
             empty-title="No transactions to show"
             empty-subtitle="This customer has no visible transaction history."
-            @refresh="fetch()"
+            @refresh="fetchTransactions()"
             @go-to-page="goToPage"
           />
         </template>
@@ -143,24 +135,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { ArrowLeft, Hash, Phone, Loader2, UserX } from 'lucide-vue-next'
 import { useEmployeeStore } from '../../stores/employeeStore'
+import { useAccountManagementStore } from '../../stores/accountManagementStore'
 import { useTransactionsList } from '../../composables/useTransactionsList'
 import { getCustomerTransactions } from '../../api/transactions'
-import {
-  approveCustomer,
-  closeAccount,
-  updateAbsoluteLimit,
-  updateDailyLimit,
-  getAccountsByCustomer,
-} from '../../api/accounts'
 import EmployeeSidebar from '../../components/employee/EmployeeSidebar.vue'
 import TransactionsTable from '../../components/employee/TransactionsTable.vue'
 
 const route         = useRoute()
 const employeeStore = useEmployeeStore()
+const accountMgmt   = useAccountManagementStore()
 const customerId    = computed(() => route.params.id)
 
 const customer = computed(() =>
@@ -173,128 +160,19 @@ const initials = computed(() => {
   return `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase()
 })
 
-// Approve
-const approveForm           = reactive({ absoluteLimit: 0, dailyTransferLimit: 1000 })
-const approving             = ref(false)
-const approveError          = ref('')
-const approveSuccess        = ref('')
-const approveValidationError = ref('')
-
-function validateApproveForm() {
-  if (approveForm.absoluteLimit === '' || approveForm.dailyTransferLimit === '') {
-    return 'Both fields are required.'
-  }
-  if (approveForm.dailyTransferLimit <= 0) {
-    return 'Daily transfer limit must be a positive number.'
-  }
-  if (approveForm.absoluteLimit > 0) {
-    return 'Absolute limit must be zero or negative.'
-  }
-  return null
-}
-
-async function handleApprove() {
-  approveValidationError.value = ''
-  approveError.value           = ''
-  approveSuccess.value         = ''
-
-  const validationError = validateApproveForm()
-  if (validationError) {
-    approveValidationError.value = validationError
-    return
-  }
-
-  approving.value = true
-  try {
-    await approveCustomer(customerId.value, approveForm.absoluteLimit, approveForm.dailyTransferLimit)
-    approveSuccess.value = 'Customer approved and accounts created!'
-    await employeeStore.fetchUsers()
-    await fetchAccounts()
-  } catch (e) {
-    approveError.value = e.response?.data?.message || 'Failed to approve customer'
-  } finally {
-    approving.value = false
-  }
-}
-
-// Accounts
-const accounts        = ref([])
-const accountsLoading = ref(false)
-const accountsError   = ref('')
-const limitForms      = reactive({})
-const accountActionMsg   = ref('')
-const accountActionError = ref('')
-
-async function fetchAccounts() {
-  if (!customer.value?.approved) return
-  accountsLoading.value = true
-  accountsError.value   = ''
-  try {
-    const res = await getAccountsByCustomer(customerId.value)
-    const all = res.data.content ?? res.data
-    accounts.value = all
-    accounts.value.forEach(a => {
-      if (!limitForms[a.iban]) {
-        limitForms[a.iban] = { absoluteLimit: a.absoluteLimit, dailyLimit: a.dailyTransferLimit }
-      }
-    })
-  } catch (e) {
-    accountsError.value = e.response?.data?.message || 'Failed to load accounts'
-  } finally {
-    accountsLoading.value = false
-  }
-}
-
-async function handleClose(iban) {
-  accountActionMsg.value   = ''
-  accountActionError.value = ''
-  try {
-    await closeAccount(iban)
-    accountActionMsg.value = `Account ${iban} closed.`
-    await fetchAccounts()
-  } catch (e) {
-    accountActionError.value = e.response?.data?.message || 'Failed to close account'
-  }
-}
-
-async function handleAbsoluteLimit(iban) {
-  accountActionMsg.value   = ''
-  accountActionError.value = ''
-  try {
-    await updateAbsoluteLimit(iban, limitForms[iban].absoluteLimit)
-    accountActionMsg.value = `Absolute limit updated for ${iban}.`
-    await fetchAccounts()
-  } catch (e) {
-    accountActionError.value = e.response?.data?.message || 'Failed to update limit'
-  }
-}
-
-async function handleDailyLimit(iban) {
-  accountActionMsg.value   = ''
-  accountActionError.value = ''
-  try {
-    await updateDailyLimit(iban, limitForms[iban].dailyLimit)
-    accountActionMsg.value = `Daily limit updated for ${iban}.`
-    await fetchAccounts()
-  } catch (e) {
-    accountActionError.value = e.response?.data?.message || 'Failed to update limit'
-  }
-}
-
-// Transactions
 const fetcher = (params) => getCustomerTransactions(customerId.value, params)
-const { items, page, totalPages, totalElements, first, last, loading, error, fetch, goToPage, reset } = useTransactionsList(fetcher)
+const { items, page, totalPages, totalElements, first, last, loading, error, fetch: fetchTransactions, goToPage, reset } = useTransactionsList(fetcher)
 
 onMounted(() => {
   if (!employeeStore.users.length) employeeStore.fetchUsers()
-  fetch()
-  fetchAccounts()
+  fetchTransactions()
+  accountMgmt.fetchAccounts(customerId.value)
 })
 
 watch(customerId, () => {
   reset()
-  fetch()
-  fetchAccounts()
+  fetchTransactions()
+  accountMgmt.fetchAccounts(customerId.value)
 })
 </script>
 
