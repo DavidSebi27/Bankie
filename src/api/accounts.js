@@ -11,6 +11,9 @@ export const getCustomersWithoutAccounts = () =>
 export const approveCustomer = (customerId, absoluteLimit, dailyTransferLimit) =>
   api.post(`/accounts/customers/${customerId}/approve`, { absoluteLimit, dailyTransferLimit })
 
+export const getAccountsByCustomer = (customerId) =>
+  api.get(`/accounts/customers/${customerId}/accounts`)
+
 export const closeAccount = (iban) =>
   api.patch(`/accounts/${iban}/close`)
 

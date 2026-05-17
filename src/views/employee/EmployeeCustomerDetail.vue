@@ -53,6 +53,7 @@
               <input v-model.number="approveForm.absoluteLimit" type="number" placeholder="e.g. 0" />
               <label>Daily Transfer Limit</label>
               <input v-model.number="approveForm.dailyTransferLimit" type="number" placeholder="e.g. 1000" />
+              <p v-if="approveValidationError" class="error-msg">{{ approveValidationError }}</p>
               <button class="btn-approve" :disabled="approving" @click="handleApprove">
                 {{ approving ? 'Approving…' : 'Approve & Create Accounts' }}
               </button>
@@ -61,13 +62,17 @@
             </div>
           </div>
 
-          <!-- Accounts list with close / limit actions -->
+          <!-- Accounts list -->
           <div v-if="customer.approved" class="section-header">
             <h3 class="section-title">Accounts</h3>
             <p class="section-sub">Manage this customer's accounts.</p>
 
             <div v-if="accountsLoading" class="state-box">
               <Loader2 class="state-icon spin" />
+            </div>
+
+            <div v-else-if="accountsError" class="state-box">
+              <p class="state-title error-msg">{{ accountsError }}</p>
             </div>
 
             <div v-else-if="accounts.length === 0" class="state-box">
@@ -87,19 +92,16 @@
                 </div>
 
                 <div class="account-actions">
-                  <!-- Set absolute limit -->
                   <div class="inline-action">
                     <input v-model.number="limitForms[acc.iban].absoluteLimit" type="number" placeholder="Absolute limit" />
                     <button @click="handleAbsoluteLimit(acc.iban)">Set</button>
                   </div>
 
-                  <!-- Set daily limit -->
                   <div class="inline-action">
                     <input v-model.number="limitForms[acc.iban].dailyLimit" type="number" placeholder="Daily limit" />
                     <button @click="handleDailyLimit(acc.iban)">Set</button>
                   </div>
 
-                  <!-- Close account -->
                   <button
                     v-if="acc.status !== 'CLOSED'"
                     class="btn-close"
@@ -147,10 +149,15 @@ import { ArrowLeft, Hash, Phone, Loader2, UserX } from 'lucide-vue-next'
 import { useEmployeeStore } from '../../stores/employeeStore'
 import { useTransactionsList } from '../../composables/useTransactionsList'
 import { getCustomerTransactions } from '../../api/transactions'
-import { approveCustomer, closeAccount, updateAbsoluteLimit, updateDailyLimit } from '../../api/accounts'
+import {
+  approveCustomer,
+  closeAccount,
+  updateAbsoluteLimit,
+  updateDailyLimit,
+  getAccountsByCustomer,
+} from '../../api/accounts'
 import EmployeeSidebar from '../../components/employee/EmployeeSidebar.vue'
 import TransactionsTable from '../../components/employee/TransactionsTable.vue'
-import api from '../../api/axios'
 
 const route         = useRoute()
 const employeeStore = useEmployeeStore()
@@ -167,15 +174,37 @@ const initials = computed(() => {
 })
 
 // Approve
-const approveForm    = reactive({ absoluteLimit: 0, dailyTransferLimit: 1000 })
-const approving      = ref(false)
-const approveError   = ref('')
-const approveSuccess = ref('')
+const approveForm           = reactive({ absoluteLimit: 0, dailyTransferLimit: 1000 })
+const approving             = ref(false)
+const approveError          = ref('')
+const approveSuccess        = ref('')
+const approveValidationError = ref('')
+
+function validateApproveForm() {
+  if (approveForm.absoluteLimit === '' || approveForm.dailyTransferLimit === '') {
+    return 'Both fields are required.'
+  }
+  if (approveForm.dailyTransferLimit <= 0) {
+    return 'Daily transfer limit must be a positive number.'
+  }
+  if (approveForm.absoluteLimit > 0) {
+    return 'Absolute limit must be zero or negative.'
+  }
+  return null
+}
 
 async function handleApprove() {
-  approving.value    = true
-  approveError.value = ''
-  approveSuccess.value = ''
+  approveValidationError.value = ''
+  approveError.value           = ''
+  approveSuccess.value         = ''
+
+  const validationError = validateApproveForm()
+  if (validationError) {
+    approveValidationError.value = validationError
+    return
+  }
+
+  approving.value = true
   try {
     await approveCustomer(customerId.value, approveForm.absoluteLimit, approveForm.dailyTransferLimit)
     approveSuccess.value = 'Customer approved and accounts created!'
@@ -191,6 +220,7 @@ async function handleApprove() {
 // Accounts
 const accounts        = ref([])
 const accountsLoading = ref(false)
+const accountsError   = ref('')
 const limitForms      = reactive({})
 const accountActionMsg   = ref('')
 const accountActionError = ref('')
@@ -198,15 +228,18 @@ const accountActionError = ref('')
 async function fetchAccounts() {
   if (!customer.value?.approved) return
   accountsLoading.value = true
+  accountsError.value   = ''
   try {
-    const res = await api.get('/accounts', { params: { size: 100 } })
+    const res = await getAccountsByCustomer(customerId.value)
     const all = res.data.content ?? res.data
-    accounts.value = all.filter(a => String(a.userId) === String(customerId.value))
+    accounts.value = all
     accounts.value.forEach(a => {
       if (!limitForms[a.iban]) {
         limitForms[a.iban] = { absoluteLimit: a.absoluteLimit, dailyLimit: a.dailyTransferLimit }
       }
     })
+  } catch (e) {
+    accountsError.value = e.response?.data?.message || 'Failed to load accounts'
   } finally {
     accountsLoading.value = false
   }
