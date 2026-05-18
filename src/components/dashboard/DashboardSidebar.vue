@@ -20,12 +20,6 @@
 
             <div class="nav-section">
                 <p class="nav-label">More</p>
-                <RouterLink to="/cards" class="nav-item" active-class="active">
-                    <CreditCard class="nav-icon" /> Cards
-                </RouterLink>
-                <RouterLink to="/savings" class="nav-item" active-class="active">
-                    <PiggyBank class="nav-icon" /> Savings
-                </RouterLink>
                 <RouterLink to="/profile" class="nav-item" active-class="active">
                     <User class="nav-icon" /> Profile
                 </RouterLink>
@@ -37,7 +31,7 @@
 <script setup>
 import {
     LayoutDashboard, Wallet, ArrowLeftRight,
-    Send, CreditCard, PiggyBank, User
+    Send, User
 } from 'lucide-vue-next'
 
 defineProps({

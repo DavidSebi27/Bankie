@@ -2,7 +2,7 @@
     <BaseCard>
         <div class="panel-header">
             <h3 class="panel-title">My cards</h3>
-            <RouterLink to="/cards" class="panel-link">Manage</RouterLink>
+            <RouterLink to="/accounts" class="panel-link">Manage</RouterLink>
         </div>
 
         <div class="cards-list">
@@ -12,11 +12,11 @@
                 </div>
                 <div class="card-info">
                     <p class="card-name">{{ card.name }}</p>
-                    <p class="card-number">•••• •••• •••• {{ card.last4 }}</p>
+                    <p class="card-number">{{ formatIban(card.iban) }}</p>
                 </div>
                 <div class="card-limit">
-                    <span class="card-limit-label">Limit</span>
-                    <span class="card-limit-value">{{ formatCurrency(card.limit) }}</span>
+                    <span class="card-limit-label">Balance</span>
+                    <span class="card-limit-value">{{ formatCurrency(card.balance) }}</span>
                 </div>
             </div>
         </div>
@@ -40,11 +40,9 @@ import BaseCard from '../../ui/BaseCard.vue'
 
 const props = defineProps({
     cards: { type: Array, default: () => [] },
-    creditUsed: { type: Number, default: 0 }
 })
 
-const formatCurrency = (n) =>
-    new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
+import { formatCurrency, formatIban } from '../../../composables/format'
 
 const utilizationPct = computed(() => {
     const total = props.cards.reduce((s, c) => s + c.limit, 0)

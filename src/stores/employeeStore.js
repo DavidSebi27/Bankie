@@ -10,8 +10,12 @@ export const useEmployeeStore = defineStore('employee', {
     }),
 
     getters: {
+        customers: (state) =>
+            Array.isArray(state.users) ? state.users.filter(u => u.role === 'CUSTOMER') : [],
         pendingUsers: (state) =>
-            Array.isArray(state.users) ? state.users.filter(u => !u.approved) : [],
+            Array.isArray(state.users)
+                ? state.users.filter(u => u.role === 'CUSTOMER' && !u.approved)
+                : [],
     },
 
     actions: {
