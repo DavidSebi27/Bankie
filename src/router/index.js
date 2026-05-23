@@ -8,7 +8,7 @@ import AccountsPage from '../views/AccountsPage.vue'
 import ProfilePage from '../views/ProfilePage.vue'
 import TransferPage from '../views/TransferPage.vue'
 import TransactionsPage from '../views/TransactionsPage.vue'
-import UnauthorizedPage from '../views/Unauthorized.vue'
+import NotFoundPage from '../views/NotFound.vue'
 import EmployeeLoginPage from '../views/EmployeeLogin.vue'
 import EmployeeDashboardPage from '../views/employee/EmployeeDashboard.vue'
 import EmployeeTransactionsPage from '../views/employee/EmployeeTransactions.vue'
@@ -22,7 +22,7 @@ const EMPLOYEE_ROLES = ['EMPLOYEE', 'ADMIN']
 const routes = [
   { path: '/login', component: LoginPage, meta: { public: true } },
   { path: '/register', component: RegisterPage, meta: { public: true } },
-  { path: '/unauthorized', component: UnauthorizedPage, meta: { public: true } },
+  { path: '/not-found', component: NotFoundPage, meta: { public: true } },
 
   { path: '/employee/login', component: EmployeeLoginPage, meta: { public: true } },
 
@@ -40,7 +40,7 @@ const routes = [
   { path: '/employee/transfer', component: EmployeeTransferPage, meta: { roles: ['EMPLOYEE'] } },
 
   { path: '/', redirect: '/dashboard' },
-  { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
+  { path: '/:pathMatch(.*)*', component: NotFoundPage, meta: { public: true } },
 ]
 
 const router = createRouter({
@@ -81,7 +81,8 @@ router.beforeEach(async (to) => {
   }
 
   if (requiredRoles && !requiredRoles.includes(auth.role)) {
-    return { path: isEmployee ? '/employee/dashboard' : '/unauthorized' }
+    // Show a generic 404 so the URL space can't be probed by role.
+    return { path: '/not-found' }
   }
 
   // Pending customers (unapproved) may only access /dashboard
