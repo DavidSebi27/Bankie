@@ -5,6 +5,9 @@ export const getMyAccounts = () => api.get('/accounts')
 export const searchCustomersByName = (firstName, lastName) =>
   api.get('/accounts/search', { params: { firstName, lastName } })
 
+export const verifyRecipient = (iban, firstName, lastName) =>
+  api.get('/accounts/verify-recipient', { params: { iban, firstName, lastName } })
+
 export const getCustomersWithoutAccounts = () =>
   api.get('/accounts/customers/without-accounts')
 
