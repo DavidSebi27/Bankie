@@ -140,7 +140,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, onUnmounted, reactive } from 'vue'
 import {
   Loader2, AlertCircle, ArrowLeftRight,
   ArrowDownLeft, ArrowUpRight,
@@ -179,7 +179,7 @@ function formatTimestamp(iso) {
   }).format(new Date(iso))
 }
 
-const localFilters = reactive({ startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '' })
+const localFilters = reactive({ ...store.filters })
 
 const hasLocal = computed(() =>
   !!(localFilters.startDate || localFilters.endDate ||
@@ -195,6 +195,8 @@ function resetFilters() {
   Object.assign(localFilters, { startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '' })
   store.resetFilters()
 }
+
+onUnmounted(() => store.resetFilters())
 </script>
 
 <style scoped src="../assets/styles/views/TransactionsPage.css" />

@@ -45,7 +45,7 @@ const { refreshing, refreshUser } = useApprovalPolling()
 
 onMounted(() => {
   accountStore.fetchAccounts()
-  transactionStore.fetchTransactions()
+  transactionStore.fetchRecent()
 })
 
 const totalBalance = computed(() => accountStore.totalBalance)
