@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import * as transactionsApi from '../api/transactions'
 
+const EMPTY_FILTERS = Object.freeze({
+    startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '',
+})
+
 export const useTransactionStore = defineStore('transactions', {
     state: () => ({
         transactions: [],
@@ -9,36 +13,23 @@ export const useTransactionStore = defineStore('transactions', {
         page: 0,
         totalPages: 0,
         totalElements: 0,
-        filters: { startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '' },
+        filters: { ...EMPTY_FILTERS },
     }),
 
     getters: {
         recentFive: (state) => state.transactions.slice(0, 5),
         isFirstPage: (state) => state.page === 0,
         isLastPage: (state) => state.page >= state.totalPages - 1,
-        hasActiveFilters: (state) =>
-            !!(state.filters.startDate || state.filters.endDate ||
-               state.filters.type ||
-               state.filters.minAmount !== '' || state.filters.maxAmount !== '' ||
-               state.filters.iban),
+        hasActiveFilters: (state) => Object.values(state.filters).some(v => v !== ''),
     },
 
     actions: {
-        async fetchTransactions(page = 0) {
+        // Core fetch — every public action funnels through here.
+        async _load(params) {
             this.loading = true
             this.error = null
             try {
-                const f = this.filters
-                const params = { page }
-                if (f.startDate)        params.start     = f.startDate + 'T00:00:00'
-                if (f.endDate)          params.end       = f.endDate   + 'T23:59:59'
-                if (f.type)             params.type      = f.type
-                if (f.minAmount !== '') params.minAmount = f.minAmount
-                if (f.maxAmount !== '') params.maxAmount = f.maxAmount
-                if (f.iban)             params.iban      = f.iban.replace(/\s/g, '')
-
-                const res = await transactionsApi.getTransactions(params)
-                const data = res.data
+                const { data } = await transactionsApi.getTransactions(params)
                 this.transactions  = data.content       ?? []
                 this.page          = data.number        ?? 0
                 this.totalPages    = data.totalPages    ?? 0
@@ -50,22 +41,47 @@ export const useTransactionStore = defineStore('transactions', {
             }
         },
 
-        async applyFilters(filters) {
+        // Translate current filter state into API query params.
+        _filterParams() {
+            const f = this.filters
+            const params = {}
+            if (f.startDate)        params.start     = `${f.startDate}T00:00:00`
+            if (f.endDate)          params.end       = `${f.endDate}T23:59:59`
+            if (f.type)             params.type      = f.type
+            if (f.minAmount !== '') params.minAmount = f.minAmount
+            if (f.maxAmount !== '') params.maxAmount = f.maxAmount
+            if (f.iban)             params.iban      = f.iban.replace(/\s/g, '')
+            return params
+        },
+
+        // Paginated list, respects current filters. Used by /transactions.
+        fetchTransactions(page = 0) {
+            return this._load({ page, ...this._filterParams() })
+        },
+
+        // Small unfiltered list. Used by the dashboard widget.
+        fetchRecent(size = 5) {
+            return this._load({ page: 0, size })
+        },
+
+        applyFilters(filters) {
             this.filters = { ...filters }
-            await this.fetchTransactions(0)
+            return this.fetchTransactions(0)
         },
 
-        async resetFilters() {
-            this.filters = { startDate: '', endDate: '', type: '', minAmount: '', maxAmount: '', iban: '' }
-            await this.fetchTransactions(0)
+        resetFilters() {
+            this.filters = { ...EMPTY_FILTERS }
+            return this.fetchTransactions(0)
         },
 
-        async nextPage() {
-            if (!this.isLastPage) await this.fetchTransactions(this.page + 1)
+        nextPage() {
+            if (this.isLastPage) return
+            return this.fetchTransactions(this.page + 1)
         },
 
-        async prevPage() {
-            if (!this.isFirstPage) await this.fetchTransactions(this.page - 1)
+        prevPage() {
+            if (this.isFirstPage) return
+            return this.fetchTransactions(this.page - 1)
         },
     },
 })

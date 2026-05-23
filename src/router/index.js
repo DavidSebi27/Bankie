@@ -83,6 +83,13 @@ router.beforeEach(async (to) => {
   if (requiredRoles && !requiredRoles.includes(auth.role)) {
     return { path: isEmployee ? '/employee/dashboard' : '/unauthorized' }
   }
+
+  // Pending customers (unapproved) may only access /dashboard
+  const isCustomer = auth.role === 'CUSTOMER'
+  const isApproved = !!auth.user?.approved
+  if (isCustomer && !isApproved && to.path !== '/dashboard') {
+    return { path: '/dashboard' }
+  }
 })
 
 export default router

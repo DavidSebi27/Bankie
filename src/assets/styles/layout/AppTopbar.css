@@ -207,3 +207,8 @@
   opacity: 0;
   transform: translateY(-6px);
 }
+.avatar-fallback-icon {
+  width: 60%; height: 60%;
+  display: block;
+  margin: auto;
+}
