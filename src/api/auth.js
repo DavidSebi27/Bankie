@@ -6,8 +6,9 @@ export const login = (data) => {
 export const register = (data) => {
     return api.post('/auth/register', data)
 }
+export const updateMe = (data) => api.patch('/me', data)
 
 export const fetchUser = async () => {
-    const res = await api.get('/users/me')
+    const res = await api.get('/me')
     return res.data
 }
