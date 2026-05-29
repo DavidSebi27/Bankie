@@ -7,8 +7,12 @@
       <RouterLink to="/transfer">
         <button class="bal-btn bal-btn-primary">Send Money</button>
       </RouterLink>
-      <button class="bal-btn bal-btn-ghost">Add Funds</button>
-      <button class="bal-btn bal-btn-ghost">View IBAN</button>
+      <RouterLink to="/atm">
+        <button class="bal-btn bal-btn-ghost">Add Funds</button>
+      </RouterLink>
+      <RouterLink to="/accounts">
+        <button class="bal-btn bal-btn-ghost">View IBAN</button>
+      </RouterLink>
     </div>
   </div>
 </template>

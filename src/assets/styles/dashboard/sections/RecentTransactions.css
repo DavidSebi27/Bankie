@@ -73,3 +73,12 @@
 .tx-amount.credit {
   color: var(--color-success-text);
 }
+
+.tx-icon-svg { width: 18px; height: 18px; color: var(--color-primary); }
+
+.tx-empty {
+  font-size: 13px;
+  color: var(--color-body);
+  text-align: center;
+  padding: 16px 0;
+}

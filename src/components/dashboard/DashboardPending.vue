@@ -2,7 +2,7 @@
   <main class="content-centered">
     <div class="page-header">
       <h2 class="text-heading-section font-light tracking-section">
-        Welcome, {{ firstName }}
+        {{ firstName ? `Welcome, ${firstName}` : 'Welcome!' }}
       </h2>
       <p class="text-caption text-body">Your account is being set up</p>
     </div>

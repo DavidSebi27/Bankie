@@ -3,7 +3,7 @@
     <h1 class="logo">Banki<span>e</span></h1>
 
     <div class="topbar-right">
-      <RouterLink v-if="auth.role === 'CUSTOMER'" to="/atm" class="atm-link">
+      <RouterLink v-if="auth.role === 'CUSTOMER' && auth.user?.approved" to="/atm" class="atm-link">
         <Banknote class="atm-icon" />
         <span>ATM</span>
       </RouterLink>
@@ -14,21 +14,28 @@
       </button>
 
       <div class="avatar-wrap" @click="menuOpen = !menuOpen">
-        <div class="avatar">{{ initials }}</div>
+        <div class="avatar">
+          <span v-if="initials">{{ initials }}</span>
+          <User v-else class="avatar-fallback-icon" />
+        </div>
         <ChevronDown class="chevron" :class="{ 'chevron-open': menuOpen }" />
       </div>
 
       <Transition name="menu">
         <div v-if="menuOpen" class="dropdown" v-click-outside="() => menuOpen = false">
           <div class="dropdown-header">
-            <p class="dropdown-name">{{ auth.user?.firstName }} {{ auth.user?.lastName }}</p>
-            <p class="dropdown-email">{{ auth.user?.email }}</p>
+            <p class="dropdown-name">{{ displayName }}</p>
+            <p v-if="auth.user?.email" class="dropdown-email">{{ auth.user.email }}</p>
           </div>
           <div class="dropdown-divider" />
-          <RouterLink to="/profile" class="dropdown-item" @click="menuOpen = false">
+          <RouterLink
+            v-if="auth.role !== 'CUSTOMER' || auth.user?.approved"
+            to="/profile" class="dropdown-item" @click="menuOpen = false">
             <User class="dropdown-icon" /> Profile
           </RouterLink>
-          <RouterLink to="/settings" class="dropdown-item" @click="menuOpen = false">
+          <RouterLink
+            v-if="auth.role !== 'CUSTOMER' || auth.user?.approved"
+            to="/settings" class="dropdown-item" @click="menuOpen = false">
             <Settings class="dropdown-icon" /> Settings
           </RouterLink>
           <div class="dropdown-divider" />
@@ -42,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useUserInitials } from '../../composables/useUserInitials'
@@ -53,6 +60,12 @@ const router = useRouter()
 
 const menuOpen = ref(false)
 const { initials } = useUserInitials()
+
+const displayName = computed(() => {
+  const u = auth.user
+  const full = `${u?.firstName ?? ''} ${u?.lastName ?? ''}`.trim()
+  return full || u?.email || 'New user'
+})
 
 const handleLogout = () => {
   menuOpen.value = false
