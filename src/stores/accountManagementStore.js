@@ -40,6 +40,7 @@ export const useAccountManagementStore = defineStore('accountManagement', {
     async fetchAccounts(customerId) {
       this.accountsLoading = true
       this.accountsError   = null
+      this.accounts        = []
       try {
         const res = await getAccountsByCustomer(customerId)
         const all = res.data.content ?? res.data

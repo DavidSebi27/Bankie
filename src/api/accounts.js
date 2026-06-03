@@ -11,11 +11,11 @@ export const verifyRecipient = (iban, firstName, lastName) =>
 export const getCustomersWithoutAccounts = () =>
   api.get('/accounts/customers/without-accounts')
 
-export const approveCustomer = (customerId, absoluteLimit, dailyTransferLimit) =>
-  api.post(`/accounts/customers/${customerId}/approve`, { absoluteLimit, dailyTransferLimit })
-
 export const getAccountsByCustomer = (customerId) =>
   api.get(`/accounts/customers/${customerId}/accounts`)
+
+export const approveCustomer = (customerId, absoluteLimit, dailyTransferLimit) =>
+  api.post(`/accounts/customers/${customerId}/approve`, { absoluteLimit, dailyTransferLimit })
 
 export const closeAccount = (iban) =>
   api.patch(`/accounts/${iban}/close`)
