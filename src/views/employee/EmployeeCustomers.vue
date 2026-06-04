@@ -19,8 +19,8 @@
               placeholder="Search by name, email, or BSN…"
             />
           </div>
-          <button class="refresh-btn" :disabled="store.loading" @click="refresh">
-            <RefreshCw class="refresh-icon" :class="{ 'refresh-spin': store.loading }" />
+          <button class="refresh-btn" :disabled="loading" @click="refresh">
+            <RefreshCw class="refresh-icon" :class="{ 'refresh-spin': loading }" />
             Refresh
           </button>
         </div>
@@ -75,9 +75,9 @@
             </div>
             <span
               class="status-badge"
-              :class="closedUserIds.has(user.id) ? 'badge-closed' : user.approved ? 'badge-approved' : 'badge-pending'"
+              :class="activeTab === 'all-closed' ? 'badge-closed' : user.approved ? 'badge-approved' : 'badge-pending'"
             >
-              {{ closedUserIds.has(user.id) ? 'All accounts closed' : user.approved ? 'Approved' : 'Pending' }}
+              {{ activeTab === 'all-closed' ? 'All accounts closed' : user.approved ? 'Approved' : 'Pending' }}
             </span>
             <ChevronRight class="chevron" />
           </RouterLink>
@@ -92,32 +92,26 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Search, RefreshCw, Loader2, AlertCircle, Users, Hash, Phone, ChevronRight } from 'lucide-vue-next'
 import { useEmployeeStore } from '../../stores/employeeStore'
-import { getCustomersWithoutAccounts, getCustomersWithAllAccountsClosed } from '../../api/employee'
+import { getCustomers } from '../../api/accounts'
 import EmployeeSidebar from '../../components/employee/EmployeeSidebar.vue'
 
-const store = useEmployeeStore()
-const query = ref('')
+const store     = useEmployeeStore()
+const query     = ref('')
 const activeTab = ref('all')
-const loading = ref(false)
-const error = ref('')
-const extraList = ref([])
-const closedUserIds = ref(new Set())
+const loading   = ref(false)
+const error     = ref('')
+const list      = ref([])
 
 const tabs = [
-  { value: 'all',     label: 'All customers' },
-  { value: 'pending', label: 'No accounts yet' },
-  { value: 'closed',  label: 'All accounts closed' },
+  { value: 'all',         label: 'All customers' },
+  { value: 'no-accounts', label: 'No accounts yet' },
+  { value: 'all-closed',  label: 'All accounts closed' },
 ]
-
-const displayList = computed(() => {
-  if (activeTab.value === 'all') return store.customers
-  return extraList.value
-})
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return displayList.value
-  return displayList.value.filter(u => {
+  if (!q) return list.value
+  return list.value.filter(u => {
     const haystack = `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.email ?? ''} ${u.bsn ?? ''}`.toLowerCase()
     return haystack.includes(q)
   })
@@ -125,30 +119,15 @@ const filtered = computed(() => {
 
 const initials = (u) => `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase()
 
-async function fetchClosedIds() {
-  try {
-    const res = await getCustomersWithAllAccountsClosed()
-    closedUserIds.value = new Set((res.data.content ?? res.data).map(u => u.id))
-  } catch {}
-}
-
 async function setTab(tab) {
   activeTab.value = tab
-  query.value = ''
-  loading.value = true
-  error.value = ''
+  query.value     = ''
+  loading.value   = true
+  error.value     = ''
   try {
-    if (tab === 'pending') {
-      const res = await getCustomersWithoutAccounts()
-      extraList.value = res.data.content ?? res.data
-    } else if (tab === 'closed') {
-      const res = await getCustomersWithAllAccountsClosed()
-      extraList.value = res.data.content ?? res.data
-      closedUserIds.value = new Set(extraList.value.map(u => u.id))
-    } else {
-      store.fetchUsers()
-      await fetchClosedIds()
-    }
+    const statusParam = tab === 'all' ? undefined : tab
+    const res = await getCustomers(statusParam)
+    list.value = res.data.content ?? res.data
   } catch {
     error.value = 'Failed to load customers.'
   } finally {
@@ -160,9 +139,9 @@ async function refresh() {
   await setTab(activeTab.value)
 }
 
-onMounted(async () => {
+onMounted(() => {
+  setTab('all')
   if (!store.users.length) store.fetchUsers()
-  await fetchClosedIds()
 })
 </script>
 

@@ -65,8 +65,10 @@
             <div class="limits-form">
               <label>Absolute Limit</label>
               <input v-model.number="accountMgmt.approveForm.absoluteLimit" type="number" placeholder="e.g. 0 or -500" />
+              <p class="field-hint">The minimum balance allowed. Use 0 or a negative number to allow overdraft (e.g. -500 lets the account go €500 into debt).</p>
               <label>Daily Transfer Limit</label>
               <input v-model.number="accountMgmt.approveForm.dailyTransferLimit" type="number" placeholder="e.g. 1000" />
+              <p class="field-hint">The maximum total amount the customer can transfer out per day (e.g. 1000 = €1,000/day).</p>
               <p v-if="accountMgmt.approveValidationError" class="error-msg">{{ accountMgmt.approveValidationError }}</p>
               <button class="btn-approve" :disabled="accountMgmt.approving" @click="accountMgmt.handleApprove(customerId, employeeStore.fetchUsers)">
                 {{ accountMgmt.approving ? 'Approving…' : 'Approve & Create Accounts' }}
@@ -106,11 +108,17 @@
                 </div>
                 <div class="account-actions">
                   <div class="inline-action">
-                    <input v-model.number="accountMgmt.limitForms[acc.iban].absoluteLimit" type="number" placeholder="Absolute limit" />
+                    <div class="inline-action-field">
+                      <input v-model.number="accountMgmt.limitForms[acc.iban].absoluteLimit" type="number" placeholder="Absolute limit" />
+                      <p class="field-hint">Min balance (0 or negative for overdraft).</p>
+                    </div>
                     <button @click="accountMgmt.handleAbsoluteLimit(acc.iban, customerId)">Set</button>
                   </div>
                   <div class="inline-action">
-                    <input v-model.number="accountMgmt.limitForms[acc.iban].dailyLimit" type="number" placeholder="Daily limit" />
+                    <div class="inline-action-field">
+                      <input v-model.number="accountMgmt.limitForms[acc.iban].dailyLimit" type="number" placeholder="Daily limit" />
+                      <p class="field-hint">Max amount transferable per day.</p>
+                    </div>
                     <button @click="accountMgmt.handleDailyLimit(acc.iban, customerId)">Set</button>
                   </div>
                   <button v-if="acc.status !== 'CLOSED'" class="btn-close" @click="requestClose(acc.iban)">
