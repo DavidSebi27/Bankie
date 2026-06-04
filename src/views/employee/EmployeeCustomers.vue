@@ -5,12 +5,8 @@
 
       <main class="content">
         <div class="page-header">
-          <h2 class="text-heading-section font-light tracking-section">
-            Customers
-          </h2>
-          <p class="text-caption text-body">
-            Browse customers to view their transaction history.
-          </p>
+          <h2 class="text-heading-section font-light tracking-section">Customers</h2>
+          <p class="text-caption text-body">Browse customers to view their transaction history.</p>
         </div>
 
         <div class="customers-header">
@@ -23,20 +19,32 @@
               placeholder="Search by name, email, or BSN…"
             />
           </div>
-          <button class="refresh-btn" :disabled="store.loading" @click="store.fetchUsers()">
+          <button class="refresh-btn" :disabled="store.loading" @click="refresh">
             <RefreshCw class="refresh-icon" :class="{ 'refresh-spin': store.loading }" />
             Refresh
           </button>
         </div>
 
-        <div v-if="store.loading && !store.users.length" class="state-box">
+        <div class="filter-tabs">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="filter-tab"
+            :class="{ active: activeTab === tab.value }"
+            @click="setTab(tab.value)"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div v-if="loading" class="state-box">
           <Loader2 class="state-icon spin" />
           <p class="state-title">Loading customers…</p>
         </div>
 
-        <div v-else-if="store.error" class="state-box">
+        <div v-else-if="error" class="state-box">
           <AlertCircle class="state-icon state-icon-error" />
-          <p class="state-title">{{ store.error }}</p>
+          <p class="state-title">{{ error }}</p>
         </div>
 
         <div v-else-if="!filtered.length" class="state-box">
@@ -53,7 +61,6 @@
             class="customer-card"
           >
             <div class="user-avatar">{{ initials(user) }}</div>
-
             <div class="user-info">
               <p class="user-name">{{ user.firstName }} {{ user.lastName }}</p>
               <p class="user-email">{{ user.email }}</p>
@@ -66,11 +73,12 @@
                 </span>
               </div>
             </div>
-
-            <span class="status-badge" :class="user.approved ? 'badge-approved' : 'badge-pending'">
-              {{ user.approved ? 'Approved' : 'Pending' }}
+            <span
+              class="status-badge"
+              :class="closedUserIds.has(user.id) ? 'badge-closed' : user.approved ? 'badge-approved' : 'badge-pending'"
+            >
+              {{ closedUserIds.has(user.id) ? 'All accounts closed' : user.approved ? 'Approved' : 'Pending' }}
             </span>
-
             <ChevronRight class="chevron" />
           </RouterLink>
         </div>
@@ -82,29 +90,79 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import {
-  Search, RefreshCw, Loader2, AlertCircle, Users, Hash, Phone, ChevronRight,
-} from 'lucide-vue-next'
+import { Search, RefreshCw, Loader2, AlertCircle, Users, Hash, Phone, ChevronRight } from 'lucide-vue-next'
 import { useEmployeeStore } from '../../stores/employeeStore'
+import { getCustomersWithoutAccounts, getCustomersWithAllAccountsClosed } from '../../api/employee'
 import EmployeeSidebar from '../../components/employee/EmployeeSidebar.vue'
 
 const store = useEmployeeStore()
 const query = ref('')
+const activeTab = ref('all')
+const loading = ref(false)
+const error = ref('')
+const extraList = ref([])
+const closedUserIds = ref(new Set())
+
+const tabs = [
+  { value: 'all',     label: 'All customers' },
+  { value: 'pending', label: 'No accounts yet' },
+  { value: 'closed',  label: 'All accounts closed' },
+]
+
+const displayList = computed(() => {
+  if (activeTab.value === 'all') return store.customers
+  return extraList.value
+})
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return store.customers
-  return store.customers.filter(u => {
+  if (!q) return displayList.value
+  return displayList.value.filter(u => {
     const haystack = `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.email ?? ''} ${u.bsn ?? ''}`.toLowerCase()
     return haystack.includes(q)
   })
 })
 
-const initials = (u) =>
-  `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase()
+const initials = (u) => `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase()
 
-onMounted(() => {
+async function fetchClosedIds() {
+  try {
+    const res = await getCustomersWithAllAccountsClosed()
+    closedUserIds.value = new Set((res.data.content ?? res.data).map(u => u.id))
+  } catch {}
+}
+
+async function setTab(tab) {
+  activeTab.value = tab
+  query.value = ''
+  loading.value = true
+  error.value = ''
+  try {
+    if (tab === 'pending') {
+      const res = await getCustomersWithoutAccounts()
+      extraList.value = res.data.content ?? res.data
+    } else if (tab === 'closed') {
+      const res = await getCustomersWithAllAccountsClosed()
+      extraList.value = res.data.content ?? res.data
+      closedUserIds.value = new Set(extraList.value.map(u => u.id))
+    } else {
+      store.fetchUsers()
+      await fetchClosedIds()
+    }
+  } catch {
+    error.value = 'Failed to load customers.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function refresh() {
+  await setTab(activeTab.value)
+}
+
+onMounted(async () => {
   if (!store.users.length) store.fetchUsers()
+  await fetchClosedIds()
 })
 </script>
 
