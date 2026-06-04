@@ -122,8 +122,10 @@ async function saveEdit() {
   saveError.value = ''
   saveSuccess.value = ''
   try {
-    const res = await updateMe(form.value)
-    auth.user = { ...auth.user, ...res.data }
+    await updateMe(form.value)
+    // Re-fetch through the store so the update is persisted to localStorage,
+    // otherwise the edit gets wiped on the next page refresh.
+    await auth.fetchUser()
     saveSuccess.value = 'Contact information updated.'
     editing.value = false
   } catch (e) {
