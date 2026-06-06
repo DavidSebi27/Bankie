@@ -33,11 +33,6 @@
             to="/profile" class="dropdown-item" @click="menuOpen = false">
             <User class="dropdown-icon" /> Profile
           </RouterLink>
-          <RouterLink
-            v-if="auth.role !== 'CUSTOMER' || auth.user?.approved"
-            to="/settings" class="dropdown-item" @click="menuOpen = false">
-            <Settings class="dropdown-icon" /> Settings
-          </RouterLink>
           <div class="dropdown-divider" />
           <button class="dropdown-item dropdown-item-danger" @click="handleLogout">
             <LogOut class="dropdown-icon" /> Logout

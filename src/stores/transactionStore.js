@@ -24,7 +24,6 @@ export const useTransactionStore = defineStore('transactions', {
     },
 
     actions: {
-        // Core fetch — every public action funnels through here.
         async _load(params) {
             this.loading = true
             this.error = null

@@ -54,6 +54,11 @@
   background: #eeeeff;
   border: 1px solid var(--color-border-purple);
 }
+.badge-employee {
+  color: var(--color-secondary);
+  background: #f0f4ff;
+  border: 1px solid var(--color-border-blue);
+}
 .badge-approved {
   color: var(--color-success-text);
   background: #e8fdf0;
