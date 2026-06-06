@@ -2,20 +2,14 @@ import api from './axios'
 
 export const getMyAccounts = () => api.get('/accounts')
 
+export const getAccountsByCustomer = (customerId) =>
+  api.get('/accounts', { params: { customerId } })          
+
 export const searchCustomersByName = (firstName, lastName) =>
   api.get('/accounts/search', { params: { firstName, lastName } })
 
 export const verifyRecipient = (iban, firstName, lastName) =>
   api.get('/accounts/verify-recipient', { params: { iban, firstName, lastName } })
-
-export const getCustomersWithoutAccounts = () =>
-  api.get('/users', { params: { status: 'no-accounts' } })         
-
-export const getCustomersWithAllAccountsClosed = () =>
-  api.get('/users', { params: { status: 'all-closed' } })           
-
-export const getAccountsByCustomer = (customerId) =>
-  api.get(`/accounts/customers/${customerId}/accounts`)
 
 export const approveCustomer = (customerId, absoluteLimit, dailyTransferLimit) =>
   api.post(`/accounts/customers/${customerId}/approve`, { absoluteLimit, dailyTransferLimit })
