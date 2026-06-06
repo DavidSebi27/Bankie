@@ -20,8 +20,5 @@ export const approveCustomer = (customerId, absoluteLimit, dailyTransferLimit) =
 export const closeAccount = (iban) =>
   api.patch(`/accounts/${iban}/close`)
 
-export const updateAbsoluteLimit = (iban, absoluteLimit) =>
-  api.patch(`/accounts/${iban}/absolute-limit`, { absoluteLimit })
-
-export const updateDailyLimit = (iban, dailyTransferLimit) =>
-  api.patch(`/accounts/${iban}/daily-limit`, { dailyTransferLimit })
+export const updateLimits = (iban, limits) =>
+  api.patch(`/accounts/${iban}/limits`, limits)

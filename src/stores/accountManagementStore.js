@@ -2,8 +2,7 @@ import { defineStore } from 'pinia'
 import {
   approveCustomer,
   closeAccount,
-  updateAbsoluteLimit,
-  updateDailyLimit,
+  updateLimits,
   getAccountsByCustomer,
 } from '../api/accounts'
 
@@ -94,7 +93,7 @@ export const useAccountManagementStore = defineStore('accountManagement', {
       this.accountActionMsg   = null
       this.accountActionError = null
       try {
-        await updateAbsoluteLimit(iban, this.limitForms[iban].absoluteLimit)
+        await updateLimits(iban, { absoluteLimit: this.limitForms[iban].absoluteLimit })
         this.accountActionMsg = `Absolute limit updated for ${iban}.`
         await this.fetchAccounts(customerId)
       } catch (err) {
@@ -106,7 +105,7 @@ export const useAccountManagementStore = defineStore('accountManagement', {
       this.accountActionMsg   = null
       this.accountActionError = null
       try {
-        await updateDailyLimit(iban, this.limitForms[iban].dailyLimit)
+        await updateLimits(iban, { dailyTransferLimit: this.limitForms[iban].dailyLimit })
         this.accountActionMsg = `Daily limit updated for ${iban}.`
         await this.fetchAccounts(customerId)
       } catch (err) {
