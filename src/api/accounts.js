@@ -9,7 +9,10 @@ export const verifyRecipient = (iban, firstName, lastName) =>
   api.get('/accounts/verify-recipient', { params: { iban, firstName, lastName } })
 
 export const getCustomersWithoutAccounts = () =>
-  api.get('/accounts/customers/without-accounts')
+  api.get('/users', { params: { status: 'no-accounts' } })         
+
+export const getCustomersWithAllAccountsClosed = () =>
+  api.get('/users', { params: { status: 'all-closed' } })           
 
 export const getAccountsByCustomer = (customerId) =>
   api.get(`/accounts/customers/${customerId}/accounts`)
