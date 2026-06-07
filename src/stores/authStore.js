@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, getActivePinia } from 'pinia'
 import * as authApi from '../api/auth'
 
 const readUser = () => {
@@ -88,11 +88,20 @@ export const useAuthStore = defineStore('auth', {
         },
 
         logout() {
-            this.token = null
-            this.role = null
-            this.user = null
-            this.initialized = false
+            // Clear persisted session first so any $reset() that re-reads
+            // localStorage gets the cleared values.
             clearSession()
+
+            // Reset every registered Pinia store (including this one) so no
+            // data from the previous user leaks into the next session.
+            const pinia = getActivePinia()
+            if (pinia) {
+                for (const store of pinia._s.values()) {
+                    store.$reset()
+                }
+            } else {
+                this.$reset()
+            }
         }
     }
 })

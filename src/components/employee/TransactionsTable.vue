@@ -52,7 +52,7 @@
               <td class="iban">{{ t.toIban || cashLabel(t.type, 'to') }}</td>
               <td class="num amount">€{{ t.amount }}</td>
               <td class="timestamp">{{ formatTimestamp(t.timestamp) }}</td>
-              <td>{{ t.initiatedByName || (t.initiatedById ? `User #${t.initiatedById}` : '—') }}</td>
+              <td>{{ t.initiatedByName || (t.initiatedBy ? `User #${t.initiatedBy}` : '—') }}</td>
             </tr>
           </tbody>
         </table>

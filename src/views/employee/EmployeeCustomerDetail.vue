@@ -8,6 +8,21 @@
           <ArrowLeft class="back-icon" /> Back to customers
         </RouterLink>
 
+        <!-- Confirmation Modal -->
+        <div v-if="confirmModal.visible" class="modal-overlay" @click.self="confirmModal.visible = false">
+          <div class="modal-box">
+            <h3 class="modal-title">Close Account</h3>
+            <p class="modal-body">
+              Are you sure you want to close <strong>{{ confirmModal.iban }}</strong>?
+              This cannot be undone.
+            </p>
+            <div class="modal-actions">
+              <button class="btn-confirm-close" @click="confirmClose">Yes, close it</button>
+              <button class="btn-cancel-modal" @click="confirmModal.visible = false">Cancel</button>
+            </div>
+          </div>
+        </div>
+
         <div v-if="!customer && employeeStore.loading" class="state-box">
           <Loader2 class="state-icon spin" />
           <p class="state-title">Loading customer…</p>
@@ -48,16 +63,22 @@
             <h3 class="section-title">Approve Customer</h3>
             <p class="section-sub">Creates a checking and savings account for this customer.</p>
             <div class="limits-form">
-              <label>Absolute Limit</label>
-              <input v-model.number="accountMgmt.approveForm.absoluteLimit" type="number" placeholder="e.g. 0" />
-              <label>Daily Transfer Limit</label>
-              <input v-model.number="accountMgmt.approveForm.dailyTransferLimit" type="number" placeholder="e.g. 1000" />
-              <p v-if="accountMgmt.approveValidationError" class="error-msg">{{ accountMgmt.approveValidationError }}</p>
+              <div>
+                <label>Absolute Limit</label>
+                <input v-model.number="accountMgmt.approveForm.absoluteLimit" type="number" placeholder="e.g. 0 or -500" />
+                <p class="field-hint">Absolute limit: minimum balance (0 or negative for overdraft).</p>
+              </div>
+              <div>
+                <label>Daily Transfer Limit</label>
+                <input v-model.number="accountMgmt.approveForm.dailyTransferLimit" type="number" placeholder="e.g. 1000" />
+                <p class="field-hint">Daily limit: max total transfer amount per day.</p>
+              </div>
+              <p v-if="accountMgmt.approveValidationError" class="error-msg" style="grid-column: 1 / -1;">{{ accountMgmt.approveValidationError }}</p>
               <button class="btn-approve" :disabled="accountMgmt.approving" @click="accountMgmt.handleApprove(customerId, employeeStore.fetchUsers)">
                 {{ accountMgmt.approving ? 'Approving…' : 'Approve & Create Accounts' }}
               </button>
-              <p v-if="accountMgmt.approveError" class="error-msg">{{ accountMgmt.approveError }}</p>
-              <p v-if="accountMgmt.approveSuccess" class="success-msg">{{ accountMgmt.approveSuccess }}</p>
+              <p v-if="accountMgmt.approveError" class="error-msg" style="grid-column: 1 / -1;">{{ accountMgmt.approveError }}</p>
+              <p v-if="accountMgmt.approveSuccess" class="success-msg" style="grid-column: 1 / -1;">{{ accountMgmt.approveSuccess }}</p>
             </div>
           </div>
 
@@ -94,11 +115,13 @@
                     <input v-model.number="accountMgmt.limitForms[acc.iban].absoluteLimit" type="number" placeholder="Absolute limit" />
                     <button @click="accountMgmt.handleAbsoluteLimit(acc.iban, customerId)">Set</button>
                   </div>
+                  <p class="field-hint">Absolute limit: minimum balance (0 or negative for overdraft).</p>
                   <div class="inline-action">
                     <input v-model.number="accountMgmt.limitForms[acc.iban].dailyLimit" type="number" placeholder="Daily limit" />
                     <button @click="accountMgmt.handleDailyLimit(acc.iban, customerId)">Set</button>
                   </div>
-                  <button v-if="acc.status !== 'CLOSED'" class="btn-close" @click="accountMgmt.handleClose(acc.iban, customerId)">
+                  <p class="field-hint">Daily limit: max total transfer amount per day.</p>
+                  <button v-if="acc.status !== 'CLOSED'" class="btn-close" @click="requestClose(acc.iban)">
                     Close Account
                   </button>
                   <span v-else class="badge-closed">Closed</span>
@@ -135,7 +158,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, reactive, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { ArrowLeft, Hash, Phone, Loader2, UserX } from 'lucide-vue-next'
 import { useEmployeeStore } from '../../stores/employeeStore'
@@ -159,6 +182,18 @@ const initials = computed(() => {
   if (!u) return '?'
   return `${u.firstName?.[0] ?? ''}${u.lastName?.[0] ?? ''}`.toUpperCase()
 })
+
+const confirmModal = reactive({ visible: false, iban: null })
+
+function requestClose(iban) {
+  confirmModal.iban = iban
+  confirmModal.visible = true
+}
+
+function confirmClose() {
+  confirmModal.visible = false
+  accountMgmt.handleClose(confirmModal.iban, customerId.value)
+}
 
 const fetcher = (params) => getCustomerTransactions(customerId.value, params)
 const { items, page, totalPages, totalElements, first, last, loading, error, fetch: fetchTransactions, goToPage, reset } = useTransactionsList(fetcher)
