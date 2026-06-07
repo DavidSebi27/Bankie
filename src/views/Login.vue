@@ -77,8 +77,18 @@ const handleLogin = async () => {
     auth.error = null
     if (!validate()) return
     const success = await auth.login({ ...form })
-    if (success && auth.role === 'CUSTOMER') router.push('/dashboard')
-    else if (success && auth.role === 'EMPLOYEE') router.push('/employee/dashboard')
+    if (!success) return
+
+    if (auth.role === 'CUSTOMER')      router.push('/dashboard')
+    else if (auth.role === 'EMPLOYEE') router.push('/employee/dashboard')
+    else {
+        // Unrecognized role on a successful login — backend contract drift.
+        // Drop the session and surface a generic error rather than stranding
+        // the user with no feedback.
+        const msg = 'Login succeeded but your account role is unrecognized. Please contact support.'
+        auth.logout()
+        auth.error = msg
+    }
 }
 </script>
 

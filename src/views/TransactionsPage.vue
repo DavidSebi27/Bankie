@@ -112,7 +112,7 @@
                   </div>
                 </div>
               </template>
-              <p v-else class="tx-names">{{ tx.fromName }} · {{ tx.toName }}</p>
+              <p v-else class="tx-names">{{ tx.fromName ?? 'Cash' }} · {{ tx.toName ?? 'Cash' }}</p>
               <p class="tx-time">{{ formatTimestamp(tx.timestamp) }}</p>
             </div>
 

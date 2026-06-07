@@ -106,8 +106,11 @@ const handleLogin = async () => {
   if (EMPLOYEE_ROLES.includes(auth.role)) {
     router.push('/employee/dashboard')
   } else {
+    // logout() resets every Pinia store and would wipe auth.error,
+    // so capture the message, log out, then set the error.
+    const wrongPortalMsg = 'This portal is for employees only. Please use the customer login.'
     auth.logout()
-    auth.error = 'This portal is for employees only. Please use the customer login.'
+    auth.error = wrongPortalMsg
   }
 }
 </script>
