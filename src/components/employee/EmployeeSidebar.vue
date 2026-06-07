@@ -16,13 +16,19 @@
         <RouterLink to="/employee/transfer" class="nav-item" active-class="active">
           <Send class="nav-icon" /> New Transfer
         </RouterLink>
+        <div class="nav-section">
+          <p class="nav-label">More</p>
+          <RouterLink to="/profile" class="nav-item" active-class="active">
+            <User class="nav-icon" /> Profile
+          </RouterLink>
+        </div>
       </div>
     </nav>
   </aside>
 </template>
 
 <script setup>
-import { ClipboardList, ArrowLeftRight, Users, Send } from 'lucide-vue-next'
+import { ClipboardList, ArrowLeftRight, Users, User, Send } from 'lucide-vue-next'
 
 defineProps({
   pendingCount: { type: Number, default: 0 }

@@ -32,7 +32,7 @@ const routes = [
   { path: '/accounts', component: AccountsPage, meta: { roles: ['CUSTOMER'] } },
   { path: '/transfer', component: TransferPage, meta: { roles: ['CUSTOMER'] } },
   { path: '/transactions', component: TransactionsPage, meta: { roles: ['CUSTOMER'] } },
-  { path: '/profile', component: ProfilePage, meta: { roles: ['CUSTOMER'] } },
+  { path: '/profile', component: ProfilePage, meta: { roles: ['CUSTOMER', 'EMPLOYEE'] } },
   { path: '/employee/dashboard', component: EmployeeDashboardPage, meta: { roles: ['EMPLOYEE'] } },
   { path: '/employee/transactions', component: EmployeeTransactionsPage, meta: { roles: ['EMPLOYEE'] } },
   { path: '/employee/customers', component: EmployeeCustomersPage, meta: { roles: ['EMPLOYEE'] } },

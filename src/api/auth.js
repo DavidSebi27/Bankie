@@ -12,10 +12,10 @@ export const updateMe = (data) => {
     const body = {}
     if (data?.email != null)       body.email       = data.email
     if (data?.phoneNumber != null) body.phoneNumber = data.phoneNumber
-    return api.patch('/me', body)
+    return api.patch('/users/me', body)
 }
 
 export const fetchUser = async () => {
-    const res = await api.get('/me')
+    const res = await api.get('/users/me')
     return res.data
 }

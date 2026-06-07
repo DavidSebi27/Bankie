@@ -1,7 +1,8 @@
 <template>
   <div class="dash">
     <div class="layout">
-      <DashboardSidebar />
+      <DashboardSidebar v-if="auth.role === 'CUSTOMER'"/>
+      <EmployeeSidebar v-else-if="auth.role === 'EMPLOYEE'" :pending-count="store.pendingUsers.length"/>
 
       <main class="content">
         <div class="page-header">
@@ -14,9 +15,10 @@
           <div class="profile-identity">
             <p class="profile-name">{{ auth.user?.firstName }} {{ auth.user?.lastName }}</p>
             <div class="profile-badges">
-              <span class="badge badge-customer">Customer</span>
-              <span v-if="auth.user?.approved" class="badge badge-approved">Approved</span>
-              <span v-else class="badge badge-pending">Pending approval</span>
+              <span v-if="auth.role === 'CUSTOMER'" class="badge badge-customer">Customer</span>
+              <span v-else-if="auth.role === 'EMPLOYEE'" class="badge badge-employee">Employee</span>
+              <span v-if="auth.user?.approved && auth.role === 'CUSTOMER'" class="badge badge-approved">Approved</span>
+              <span v-else-if="!auth.user?.approved && auth.role === 'CUSTOMER'" class="badge badge-pending">Pending approval</span>
             </div>
           </div>
         </div>
@@ -93,11 +95,14 @@
 import { ref } from 'vue'
 import { User, Mail } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/authStore'
+import { useEmployeeStore } from '../stores/employeeStore'
 import DashboardSidebar from '../components/dashboard/DashboardSidebar.vue'
+import EmployeeSidebar from '../components/employee/EmployeeSidebar.vue'
 import { useUserInitials } from '../composables/useUserInitials'
 import { updateMe } from '../api/auth'
 
 const auth = useAuthStore()
+const store = useEmployeeStore()
 const { initials } = useUserInitials()
 
 const editing = ref(false)
