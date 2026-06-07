@@ -8,11 +8,6 @@
         <span>ATM</span>
       </RouterLink>
 
-      <button class="notif-btn" aria-label="Notifications">
-        <Bell class="notif-bell" />
-        <span class="notif-dot" />
-      </button>
-
       <div class="avatar-wrap" @click="menuOpen = !menuOpen">
         <div class="avatar">
           <span v-if="initials">{{ initials }}</span>
