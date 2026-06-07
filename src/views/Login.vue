@@ -78,7 +78,7 @@ const handleLogin = async () => {
     if (!validate()) return
     const success = await auth.login({ ...form })
     if (success && auth.role === 'CUSTOMER') router.push('/dashboard')
-    else if (success) router.push('/employee/dashboard')
+    else if (success && auth.role === 'EMPLOYEE') router.push('/employee/dashboard')
 }
 </script>
 
